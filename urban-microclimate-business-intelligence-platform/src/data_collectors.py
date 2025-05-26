@@ -118,3 +118,49 @@ class EnvironmentalDataCollector:
         logger.info(f"Successfully collected {len(df)} environmental measurements")
         return df
 
+    def _collect_weather_data(self, location: LocationPoint) -> Dict:
+        """Simulate realistic weather data collection with API patterns."""
+        # Simulate seasonal temperature variation
+        month = datetime.now().month
+        base_temp = 15 + 10 * np.sin((month - 3) * np.pi / 6)
+        
+        # Add location-based variation
+        if 'park' in location.street_name.lower():
+            temp_adjustment = -2  # Parks are cooler
+        elif 'financial' in location.street_name.lower():
+            temp_adjustment = 3   # Urban heat island
+        else:
+            temp_adjustment = 0
+        
+        # Generate realistic weather with natural variation
+        temperature = base_temp + temp_adjustment + np.random.normal(0, 3)
+        humidity = np.clip(np.random.normal(60, 15), 30, 90)
+        wind_speed = np.random.exponential(2)
+        
+        return {
+            'temperature': round(temperature, 1),
+            'humidity': round(humidity, 1),
+            'wind_speed': round(wind_speed, 1)
+        }
+    
+    def _collect_air_quality_data(self, location: LocationPoint) -> Dict:
+        """Simulate air quality data with realistic urban patterns."""
+        # Base AQI with urban/suburban differences
+        if 'financial' in location.street_name.lower():
+            base_aqi = 65  # Higher pollution in business districts
+        elif 'park' in location.street_name.lower():
+            base_aqi = 35  # Better air quality near parks
+        else:
+            base_aqi = 50  # Moderate baseline
+        
+        # Add temporal variation (rush hour effects)
+        hour = datetime.now().hour
+        if 7 <= hour <= 9 or 17 <= hour <= 19:
+            rush_hour_bonus = np.random.normal(15, 5)
+        else:
+            rush_hour_bonus = 0
+        
+        aqi = np.clip(base_aqi + rush_hour_bonus + np.random.normal(0, 10), 10, 200)
+        
+        return {'aqi': int(round(aqi))}
+

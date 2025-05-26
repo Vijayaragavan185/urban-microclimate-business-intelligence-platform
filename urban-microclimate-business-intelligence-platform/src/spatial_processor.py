@@ -168,3 +168,71 @@ class SpatialProcessor:
                     joined_records.append(joined_record)
             
             return pd.DataFrame(joined_records)
+
+    
+    def create_buffer_zones(self, points_df: pd.DataFrame, buffer_radius: float = 200) -> pd.DataFrame:
+        """Create buffer zones around points for analysis."""
+        buffer_zones = []
+        
+        for idx, point in points_df.iterrows():
+            # Create circular buffer (simplified as bounding box)
+            lat_offset = buffer_radius / 111000  # Approximate degrees per meter
+            lon_offset = buffer_radius / (111000 * np.cos(np.radians(point['latitude'])))
+            
+            buffer_zone = {
+                'point_id': idx,
+                'center_lat': point['latitude'],
+                'center_lon': point['longitude'],
+                'buffer_radius_meters': buffer_radius,
+                'north_bound': point['latitude'] + lat_offset,
+                'south_bound': point['latitude'] - lat_offset,
+                'east_bound': point['longitude'] + lon_offset,
+                'west_bound': point['longitude'] - lon_offset,
+                'buffer_area_sqm': np.pi * (buffer_radius ** 2)
+            }
+            
+            buffer_zones.append(buffer_zone)
+        
+        return pd.DataFrame(buffer_zones)
+    
+    def calculate_spatial_density(self, points_df: pd.DataFrame, grid_size: float = 500) -> pd.DataFrame:
+        """Calculate point density across a spatial grid."""
+        # Find bounds of all points
+        min_lat, max_lat = points_df['latitude'].min(), points_df['latitude'].max()
+        min_lon, max_lon = points_df['longitude'].min(), points_df['longitude'].max()
+        
+        # Create grid
+        lat_step = grid_size / 111000  # Convert meters to degrees
+        lon_step = grid_size / 111000  # Simplified (should account for latitude)
+        
+        lat_range = np.arange(min_lat, max_lat + lat_step, lat_step)
+        lon_range = np.arange(min_lon, max_lon + lon_step, lon_step)
+        
+        density_grid = []
+        
+        for i, lat in enumerate(lat_range[:-1]):
+            for j, lon in enumerate(lon_range[:-1]):
+                # Count points in this grid cell
+                points_in_cell = points_df[
+                    (points_df['latitude'] >= lat) & 
+                    (points_df['latitude'] < lat_range[i + 1]) &
+                    (points_df['longitude'] >= lon) & 
+                    (points_df['longitude'] < lon_range[j + 1])
+                ]
+                
+                density_cell = {
+                    'grid_i': i,
+                    'grid_j': j,
+                    'lat_min': lat,
+                    'lat_max': lat_range[i + 1],
+                    'lon_min': lon,
+                    'lon_max': lon_range[j + 1],
+                    'center_lat': (lat + lat_range[i + 1]) / 2,
+                    'center_lon': (lon + lon_range[j + 1]) / 2,
+                    'point_count': len(points_in_cell),
+                    'density_per_sqkm': len(points_in_cell) / ((grid_size / 1000) ** 2)
+                }
+                
+                density_grid.append(density_cell)
+        
+        return pd.DataFrame(density_grid)

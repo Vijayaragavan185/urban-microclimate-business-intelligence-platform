@@ -289,3 +289,62 @@ class SpatialProcessor:
         
         return points_with_clusters, cluster_summary
     
+    def create_interactive_map(self, points_df: pd.DataFrame, 
+                             center_lat: float = None, center_lon: float = None,
+                             zoom_start: int = 12) -> folium.Map:
+        """Create interactive map with points."""
+        
+        if center_lat is None:
+            center_lat = points_df['latitude'].mean()
+        if center_lon is None:
+            center_lon = points_df['longitude'].mean()
+        
+        # Create base map
+        m = folium.Map(
+            location=[center_lat, center_lon],
+            zoom_start=zoom_start,
+            tiles='OpenStreetMap'
+        )
+        
+        # Add marker cluster
+        marker_cluster = MarkerCluster().add_to(m)
+        
+        # Add points to map
+        for idx, point in points_df.iterrows():
+            popup_text = f"Point {idx}"
+            if 'name' in point:
+                popup_text = point['name']
+            elif 'street_name' in point:
+                popup_text = point['street_name']
+            
+            folium.Marker(
+                location=[point['latitude'], point['longitude']],
+                popup=popup_text,
+                tooltip=f"Lat: {point['latitude']:.4f}, Lon: {point['longitude']:.4f}"
+            ).add_to(marker_cluster)
+        
+        return m
+    
+    def create_heatmap(self, points_df: pd.DataFrame, weight_column: str = None) -> folium.Map:
+        """Create density heatmap of points."""
+        center_lat = points_df['latitude'].mean()
+        center_lon = points_df['longitude'].mean()
+        
+        m = folium.Map(
+            location=[center_lat, center_lon],
+            zoom_start=12
+        )
+        
+        # Prepare data for heatmap
+        if weight_column and weight_column in points_df.columns:
+            heat_data = [[row['latitude'], row['longitude'], row[weight_column]] 
+                        for idx, row in points_df.iterrows()]
+        else:
+            heat_data = [[row['latitude'], row['longitude']] 
+                        for idx, row in points_df.iterrows()]
+        
+        # Add heatmap
+        HeatMap(heat_data).add_to(m)
+        
+        return m
+

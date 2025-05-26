@@ -396,3 +396,77 @@ class BusinessPerformanceAnalyzer:
         logger.info(f"Predictive model built: R² = {r2:.3f}, RMSE = {np.sqrt(mse):.3f}")
         return model_results
     
+    def analyze_business_performance_by_environment(self) -> Dict:
+        """Analyze business performance patterns across different environmental conditions."""
+        if self.merged_data is None:
+            raise ValueError("Merged data not available.")
+        
+        performance_analysis = {}
+        
+        # Analysis by environmental comfort levels
+        if 'env_comfort_index' in self.merged_data.columns:
+            # Create comfort categories
+            comfort_data = self.merged_data.copy()
+            comfort_data['comfort_category'] = pd.cut(
+                comfort_data['env_comfort_index'],
+                bins=[0, 0.3, 0.6, 0.8, 1.0],
+                labels=['Poor', 'Fair', 'Good', 'Excellent'],
+                include_lowest=True
+            )
+            
+            # Calculate performance metrics by comfort category
+            comfort_performance = comfort_data.groupby('comfort_category').agg({
+                'business_success_score': ['count', 'mean', 'std'],
+                'business_rating': ['mean', 'std'],
+                'business_reviews': ['mean', 'median']
+            }).round(3)
+            
+            performance_analysis['by_comfort_level'] = comfort_performance.to_dict()
+        
+        # Analysis by air quality levels
+        if 'env_air_quality' in self.merged_data.columns:
+            aqi_data = self.merged_data.copy()
+            aqi_data['aqi_category'] = pd.cut(
+                aqi_data['env_air_quality'],
+                bins=[0, 50, 100, 150, 300],
+                labels=['Good', 'Moderate', 'Unhealthy', 'Very Unhealthy'],
+                include_lowest=True
+            )
+            
+            aqi_performance = aqi_data.groupby('aqi_category').agg({
+                'business_success_score': ['count', 'mean', 'std'],
+                'business_rating': ['mean', 'std']
+            }).round(3)
+            
+            performance_analysis['by_air_quality'] = aqi_performance.to_dict()
+        
+        # Analysis by temperature ranges
+        if 'env_temperature' in self.merged_data.columns:
+            temp_data = self.merged_data.copy()
+            temp_data['temp_category'] = pd.cut(
+                temp_data['env_temperature'],
+                bins=[-np.inf, 15, 20, 25, np.inf],
+                labels=['Cold', 'Cool', 'Moderate', 'Warm'],
+                include_lowest=True
+            )
+            
+            temp_performance = temp_data.groupby('temp_category').agg({
+                'business_success_score': ['count', 'mean', 'std'],
+                'business_rating': ['mean', 'std']
+            }).round(3)
+            
+            performance_analysis['by_temperature'] = temp_performance.to_dict()
+        
+        # Business category analysis
+        if 'business_category' in self.merged_data.columns:
+            category_performance = self.merged_data.groupby('business_category').agg({
+                'business_success_score': ['count', 'mean', 'std'],
+                'business_rating': ['mean', 'std'],
+                'env_comfort_index': ['mean', 'std']
+            }).round(3)
+            
+            performance_analysis['by_business_category'] = category_performance.to_dict()
+        
+        logger.info("Business performance analysis by environment completed")
+        return performance_analysis
+    

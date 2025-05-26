@@ -138,3 +138,122 @@ class BusinessPerformanceAnalyzer:
         logger.info(f"Spatial merge completed: {len(self.merged_data)} business-environment pairs")
         
         return self.merged_data
+    
+    def calculate_correlation_matrix(self) -> pd.DataFrame:
+        """Calculate comprehensive correlation matrix between environmental and business factors."""
+        if self.merged_data is None:
+            raise ValueError("Merged data not available. Run spatial_merge_datasets first.")
+        
+        # Select numeric columns for correlation analysis
+        correlation_columns = [
+            'env_temperature', 'env_humidity', 'env_air_quality', 'env_wind_speed', 'env_comfort_index',
+            'business_rating', 'business_reviews', 'business_success_score', 'business_price_level'
+        ]
+        
+        # Filter for available columns
+        available_columns = [col for col in correlation_columns if col in self.merged_data.columns]
+        correlation_data = self.merged_data[available_columns].copy()
+        
+        # Handle missing values
+        correlation_data = correlation_data.dropna()
+        
+        # Calculate correlation matrix
+        correlation_matrix = correlation_data.corr()
+        
+        logger.info(f"Correlation matrix calculated for {len(available_columns)} variables")
+        return correlation_matrix
+    
+    def perform_statistical_significance_tests(self) -> Dict:
+        """Perform statistical tests for key relationships."""
+        if self.merged_data is None:
+            raise ValueError("Merged data not available.")
+        
+        test_results = {}
+        
+        # Test 1: Environmental comfort vs Business success
+        if 'env_comfort_index' in self.merged_data.columns and 'business_success_score' in self.merged_data.columns:
+            comfort_data = self.merged_data['env_comfort_index'].dropna()
+            success_data = self.merged_data['business_success_score'].dropna()
+            
+            if len(comfort_data) > 5 and len(success_data) > 5:
+                # Align the data
+                aligned_data = self.merged_data[['env_comfort_index', 'business_success_score']].dropna()
+                
+                if len(aligned_data) > 5:
+                    correlation, p_value = stats.pearsonr(
+                        aligned_data['env_comfort_index'], 
+                        aligned_data['business_success_score']
+                    )
+                    
+                    test_results['comfort_vs_success'] = {
+                        'correlation': correlation,
+                        'p_value': p_value,
+                        'significant': p_value < 0.05,
+                        'sample_size': len(aligned_data),
+                        'interpretation': self._interpret_correlation(correlation, p_value)
+                    }
+        
+        # Test 2: Air quality vs Business rating
+        if 'env_air_quality' in self.merged_data.columns and 'business_rating' in self.merged_data.columns:
+            aligned_data = self.merged_data[['env_air_quality', 'business_rating']].dropna()
+            
+            if len(aligned_data) > 5:
+                correlation, p_value = stats.pearsonr(
+                    aligned_data['env_air_quality'], 
+                    aligned_data['business_rating']
+                )
+                
+                test_results['air_quality_vs_rating'] = {
+                    'correlation': correlation,
+                    'p_value': p_value,
+                    'significant': p_value < 0.05,
+                    'sample_size': len(aligned_data),
+                    'interpretation': self._interpret_correlation(correlation, p_value)
+                }
+        
+        # Test 3: Temperature vs Business performance
+        if 'env_temperature' in self.merged_data.columns and 'business_success_score' in self.merged_data.columns:
+            aligned_data = self.merged_data[['env_temperature', 'business_success_score']].dropna()
+            
+            if len(aligned_data) > 5:
+                correlation, p_value = stats.pearsonr(
+                    aligned_data['env_temperature'], 
+                    aligned_data['business_success_score']
+                )
+                
+                test_results['temperature_vs_performance'] = {
+                    'correlation': correlation,
+                    'p_value': p_value,
+                    'significant': p_value < 0.05,
+                    'sample_size': len(aligned_data),
+                    'interpretation': self._interpret_correlation(correlation, p_value)
+                }
+        
+        # Test 4: ANOVA for business categories vs environmental comfort
+        if 'business_category' in self.merged_data.columns and 'env_comfort_index' in self.merged_data.columns:
+            category_data = self.merged_data[['business_category', 'env_comfort_index']].dropna()
+            
+            if len(category_data) > 10:
+                categories = category_data['business_category'].unique()
+                if len(categories) >= 2:
+                    category_groups = [
+                        category_data[category_data['business_category'] == cat]['env_comfort_index'].values
+                        for cat in categories
+                    ]
+                    
+                    # Filter out empty groups
+                    category_groups = [group for group in category_groups if len(group) > 0]
+                    
+                    if len(category_groups) >= 2:
+                        f_stat, p_value = stats.f_oneway(*category_groups)
+                        
+                        test_results['category_vs_comfort_anova'] = {
+                            'f_statistic': f_stat,
+                            'p_value': p_value,
+                            'significant': p_value < 0.05,
+                            'categories_tested': len(category_groups),
+                            'interpretation': 'Significant differences between business categories in environmental comfort' if p_value < 0.05 else 'No significant differences found'
+                        }
+        
+        logger.info(f"Statistical tests completed: {len(test_results)} tests performed")
+        return test_results

@@ -79,3 +79,92 @@ class SpatialProcessor:
         
         return pd.DataFrame(neighbor_results)
     
+    def spatial_join(self, left_df: pd.DataFrame, right_df: pd.DataFrame, 
+                    max_distance: float = 200, join_type: str = 'nearest') -> pd.DataFrame:
+        """Perform spatial join between two datasets."""
+        
+        if join_type == 'nearest':
+            # Join each left point to nearest right point within max_distance
+            joined_records = []
+            
+            for left_idx, left_row in left_df.iterrows():
+                min_distance = float('inf')
+                nearest_right_idx = None
+                
+                for right_idx, right_row in right_df.iterrows():
+                    distance = geodesic(
+                        (left_row['latitude'], left_row['longitude']),
+                        (right_row['latitude'], right_row['longitude'])
+                    ).meters
+                    
+                    if distance < min_distance and distance <= max_distance:
+                        min_distance = distance
+                        nearest_right_idx = right_idx
+                
+                if nearest_right_idx is not None:
+                    # Combine left and right records
+                    joined_record = {}
+                    
+                    # Add left data with prefix
+                    for col in left_df.columns:
+                        joined_record[f'left_{col}'] = left_row[col]
+                    
+                    # Add right data with prefix
+                    right_row_data = right_df.loc[nearest_right_idx]
+                    for col in right_df.columns:
+                        joined_record[f'right_{col}'] = right_row_data[col]
+                    
+                    # Add spatial relationship info
+                    joined_record['spatial_distance_meters'] = round(min_distance, 1)
+                    joined_record['join_type'] = 'nearest_neighbor'
+                    
+                    joined_records.append(joined_record)
+            
+            return pd.DataFrame(joined_records)
+        
+        elif join_type == 'within_distance':
+            # Join all right points within max_distance of each left point
+            joined_records = []
+            
+            for left_idx, left_row in left_df.iterrows():
+                matches_found = False
+                
+                for right_idx, right_row in right_df.iterrows():
+                    distance = geodesic(
+                        (left_row['latitude'], left_row['longitude']),
+                        (right_row['latitude'], right_row['longitude'])
+                    ).meters
+                    
+                    if distance <= max_distance:
+                        matches_found = True
+                        
+                        # Combine records
+                        joined_record = {}
+                        
+                        for col in left_df.columns:
+                            joined_record[f'left_{col}'] = left_row[col]
+                        
+                        for col in right_df.columns:
+                            joined_record[f'right_{col}'] = right_row[col]
+                        
+                        joined_record['spatial_distance_meters'] = round(distance, 1)
+                        joined_record['join_type'] = 'within_distance'
+                        
+                        joined_records.append(joined_record)
+                
+                # If no matches found, include left record with nulls for right
+                if not matches_found:
+                    joined_record = {}
+                    
+                    for col in left_df.columns:
+                        joined_record[f'left_{col}'] = left_row[col]
+                    
+                    for col in right_df.columns:
+                        joined_record[f'right_{col}'] = None
+                    
+                    joined_record['spatial_distance_meters'] = None
+                    joined_record['join_type'] = 'no_match'
+                    
+                    joined_records.append(joined_record)
+            
+            return pd.DataFrame(joined_records)

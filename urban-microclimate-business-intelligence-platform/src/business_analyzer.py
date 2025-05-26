@@ -1,13 +1,6 @@
-# Create Module 2: business_analyzer.py with real functionality
-
 import pandas as pd
 import numpy as np
 from scipy import stats
-from sklearn.preprocessing import StandardScaler
-from sklearn.cluster import DBSCAN
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import mean_squared_error, r2_score
 import sqlite3
 import logging
 from typing import Dict, List, Tuple, Optional
@@ -16,6 +9,7 @@ import warnings
 warnings.filterwarnings('ignore')
 
 logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
 
 @dataclass
 class AnalysisResults:
@@ -34,551 +28,13 @@ class BusinessPerformanceAnalyzer:
         self.merged_data = None
         self.analysis_results = {}
         logger.info("Business Performance Analyzer initialized")
-
-    def load_data_from_database(self) -> Tuple[pd.DataFrame, pd.DataFrame]:
-        """Load environmental and business data from database."""
-        try:
-            conn = sqlite3.connect(self.database_path)
-            
-            # Load environmental data
-            env_query = """
-            SELECT * FROM environmental_data 
-            ORDER BY timestamp DESC
-            """
-            self.env_data = pd.read_sql_query(env_query, conn)
-            
-            # Load business data (simulated table for demo)
-            # In real implementation, this would come from actual business data table
-            conn.close()
-            
-            logger.info(f"Loaded {len(self.env_data)} environmental records from database")
-            return self.env_data, self.business_data
-            
-        except Exception as e:
-            logger.error(f"Failed to load data from database: {e}")
-            raise
     
-    def load_data_from_csv(self, env_file: str, business_file: str) -> Tuple[pd.DataFrame, pd.DataFrame]:
-        """Load data from CSV files."""
-        try:
-            self.env_data = pd.read_csv(env_file)
-            self.business_data = pd.read_csv(business_file)
-            
-            logger.info(f"Loaded {len(self.env_data)} environmental and {len(self.business_data)} business records")
-            return self.env_data, self.business_data
-            
-        except Exception as e:
-            logger.error(f"Failed to load CSV data: {e}")
-            raise
-
-    
-    def spatial_merge_datasets(self, max_distance: float = 200.0) -> pd.DataFrame:
-        """Perform spatial join between environmental and business data."""
-        if self.env_data is None or self.business_data is None:
-            raise ValueError("Data not loaded. Call load_data_from_csv or load_data_from_database first.")
-        
-        logger.info(f"Performing spatial merge with max distance: {max_distance}m")
-        
-        merged_records = []
-        
-        for _, business in self.business_data.iterrows():
-            # Calculate distances to all environmental points
-            distances = []
-            for _, env_point in self.env_data.iterrows():
-                # Simplified distance calculation (in practice, use proper geospatial functions)
-                lat_diff = business['latitude'] - env_point['latitude']
-                lon_diff = business['longitude'] - env_point['longitude']
-                
-                # Convert to approximate meters (rough calculation)
-                lat_meters = lat_diff * 111000
-                lon_meters = lon_diff * 111000 * np.cos(np.radians(env_point['latitude']))
-                distance = np.sqrt(lat_meters**2 + lon_meters**2)
-                
-                distances.append(distance)
-            
-            # Find closest environmental point
-            min_distance_idx = np.argmin(distances)
-            min_distance = distances[min_distance_idx]
-            
-            if min_distance <= max_distance:
-                env_record = self.env_data.iloc[min_distance_idx]
-                
-                # Merge records
-                merged_record = {
-                    # Business data
-                    'business_id': business.get('business_id'),
-                    'business_name': business.get('name'),
-                    'business_category': business.get('category'),
-                    'business_rating': business.get('rating'),
-                    'business_reviews': business.get('review_count'),
-                    'business_success_score': business.get('success_score'),
-                    'business_price_level': business.get('price_level'),
-                    'business_is_open': business.get('is_open'),
-                    
-                    # Environmental data
-                    'env_temperature': env_record.get('temperature_celsius'),
-                    'env_humidity': env_record.get('humidity_percent'),
-                    'env_air_quality': env_record.get('air_quality_index'),
-                    'env_wind_speed': env_record.get('wind_speed_ms'),
-                    'env_comfort_index': env_record.get('comfort_index'),
-                    'env_quality_score': env_record.get('quality_score'),
-                    
-                    # Spatial relationship
-                    'distance_to_env_point': min_distance,
-                    'measurement_area': env_record.get('street_name'),
-                    
-                    # Location data
-                    'latitude': business.get('latitude'),
-                    'longitude': business.get('longitude')
-                }
-                
-                merged_records.append(merged_record)
-        
-        self.merged_data = pd.DataFrame(merged_records)
-        logger.info(f"Spatial merge completed: {len(self.merged_data)} business-environment pairs")
-        
-        return self.merged_data
-    
-    def calculate_correlation_matrix(self) -> pd.DataFrame:
-        """Calculate comprehensive correlation matrix between environmental and business factors."""
-        if self.merged_data is None:
-            raise ValueError("Merged data not available. Run spatial_merge_datasets first.")
-        
-        # Select numeric columns for correlation analysis
-        correlation_columns = [
-            'env_temperature', 'env_humidity', 'env_air_quality', 'env_wind_speed', 'env_comfort_index',
-            'business_rating', 'business_reviews', 'business_success_score', 'business_price_level'
-        ]
-        
-        # Filter for available columns
-        available_columns = [col for col in correlation_columns if col in self.merged_data.columns]
-        correlation_data = self.merged_data[available_columns].copy()
-        
-        # Handle missing values
-        correlation_data = correlation_data.dropna()
-        
-        # Calculate correlation matrix
-        correlation_matrix = correlation_data.corr()
-        
-        logger.info(f"Correlation matrix calculated for {len(available_columns)} variables")
-        return correlation_matrix
-    
-    def perform_statistical_significance_tests(self) -> Dict:
-        """Perform statistical tests for key relationships."""
-        if self.merged_data is None:
-            raise ValueError("Merged data not available.")
-        
-        test_results = {}
-        
-        # Test 1: Environmental comfort vs Business success
-        if 'env_comfort_index' in self.merged_data.columns and 'business_success_score' in self.merged_data.columns:
-            comfort_data = self.merged_data['env_comfort_index'].dropna()
-            success_data = self.merged_data['business_success_score'].dropna()
-            
-            if len(comfort_data) > 5 and len(success_data) > 5:
-                # Align the data
-                aligned_data = self.merged_data[['env_comfort_index', 'business_success_score']].dropna()
-                
-                if len(aligned_data) > 5:
-                    correlation, p_value = stats.pearsonr(
-                        aligned_data['env_comfort_index'], 
-                        aligned_data['business_success_score']
-                    )
-                    
-                    test_results['comfort_vs_success'] = {
-                        'correlation': correlation,
-                        'p_value': p_value,
-                        'significant': p_value < 0.05,
-                        'sample_size': len(aligned_data),
-                        'interpretation': self._interpret_correlation(correlation, p_value)
-                    }
-        
-        # Test 2: Air quality vs Business rating
-        if 'env_air_quality' in self.merged_data.columns and 'business_rating' in self.merged_data.columns:
-            aligned_data = self.merged_data[['env_air_quality', 'business_rating']].dropna()
-            
-            if len(aligned_data) > 5:
-                correlation, p_value = stats.pearsonr(
-                    aligned_data['env_air_quality'], 
-                    aligned_data['business_rating']
-                )
-                
-                test_results['air_quality_vs_rating'] = {
-                    'correlation': correlation,
-                    'p_value': p_value,
-                    'significant': p_value < 0.05,
-                    'sample_size': len(aligned_data),
-                    'interpretation': self._interpret_correlation(correlation, p_value)
-                }
-        
-        # Test 3: Temperature vs Business performance
-        if 'env_temperature' in self.merged_data.columns and 'business_success_score' in self.merged_data.columns:
-            aligned_data = self.merged_data[['env_temperature', 'business_success_score']].dropna()
-            
-            if len(aligned_data) > 5:
-                correlation, p_value = stats.pearsonr(
-                    aligned_data['env_temperature'], 
-                    aligned_data['business_success_score']
-                )
-                
-                test_results['temperature_vs_performance'] = {
-                    'correlation': correlation,
-                    'p_value': p_value,
-                    'significant': p_value < 0.05,
-                    'sample_size': len(aligned_data),
-                    'interpretation': self._interpret_correlation(correlation, p_value)
-                }
-        
-        # Test 4: ANOVA for business categories vs environmental comfort
-        if 'business_category' in self.merged_data.columns and 'env_comfort_index' in self.merged_data.columns:
-            category_data = self.merged_data[['business_category', 'env_comfort_index']].dropna()
-            
-            if len(category_data) > 10:
-                categories = category_data['business_category'].unique()
-                if len(categories) >= 2:
-                    category_groups = [
-                        category_data[category_data['business_category'] == cat]['env_comfort_index'].values
-                        for cat in categories
-                    ]
-                    
-                    # Filter out empty groups
-                    category_groups = [group for group in category_groups if len(group) > 0]
-                    
-                    if len(category_groups) >= 2:
-                        f_stat, p_value = stats.f_oneway(*category_groups)
-                        
-                        test_results['category_vs_comfort_anova'] = {
-                            'f_statistic': f_stat,
-                            'p_value': p_value,
-                            'significant': p_value < 0.05,
-                            'categories_tested': len(category_groups),
-                            'interpretation': 'Significant differences between business categories in environmental comfort' if p_value < 0.05 else 'No significant differences found'
-                        }
-        
-        logger.info(f"Statistical tests completed: {len(test_results)} tests performed")
-        return test_results
-    def _interpret_correlation(self, correlation: float, p_value: float) -> str:
-        """Interpret correlation strength and significance."""
-        if p_value >= 0.05:
-            return "Not statistically significant"
-        
-        abs_corr = abs(correlation)
-        if abs_corr >= 0.7:
-            strength = "Strong"
-        elif abs_corr >= 0.5:
-            strength = "Moderate"
-        elif abs_corr >= 0.3:
-            strength = "Weak"
-        else:
-            strength = "Very weak"
-        
-        direction = "positive" if correlation > 0 else "negative"
-        return f"{strength} {direction} correlation (statistically significant)"
-    
-    def perform_cluster_analysis(self) -> Dict:
-        """Perform clustering analysis on environmental-business data."""
-        if self.merged_data is None:
-            raise ValueError("Merged data not available.")
-        
-        # Select features for clustering
-        cluster_features = [
-            'env_temperature', 'env_humidity', 'env_air_quality', 'env_comfort_index',
-            'business_rating', 'business_success_score'
-        ]
-        
-        # Filter for available columns and remove missing values
-        available_features = [col for col in cluster_features if col in self.merged_data.columns]
-        cluster_data = self.merged_data[available_features].dropna()
-        
-        if len(cluster_data) < 5:
-            logger.warning("Insufficient data for clustering analysis")
-            return {}
-        
-        # Standardize features
-        scaler = StandardScaler()
-        scaled_data = scaler.fit_transform(cluster_data)
-        
-        # Perform DBSCAN clustering
-        clustering = DBSCAN(eps=0.5, min_samples=3).fit(scaled_data)
-        
-        # Add cluster labels to data
-        cluster_data_with_labels = cluster_data.copy()
-        cluster_data_with_labels['cluster'] = clustering.labels_
-        
-        # Analyze clusters
-        unique_clusters = set(clustering.labels_)
-        n_clusters = len(unique_clusters) - (1 if -1 in unique_clusters else 0)
-        n_outliers = list(clustering.labels_).count(-1)
-        
-        cluster_analysis = {
-            'n_clusters': n_clusters,
-            'n_outliers': n_outliers,
-            'total_points': len(cluster_data),
-            'cluster_details': {}
-        }
-        
-        # Analyze each cluster
-        for cluster_id in unique_clusters:
-            if cluster_id != -1:  # Skip outliers
-                cluster_points = cluster_data_with_labels[cluster_data_with_labels['cluster'] == cluster_id]
-                
-                cluster_stats = {
-                    'size': len(cluster_points),
-                    'percentage': len(cluster_points) / len(cluster_data) * 100
-                }
-                
-                # Calculate mean values for each feature
-                for feature in available_features:
-                    cluster_stats[f'mean_{feature}'] = cluster_points[feature].mean()
-                
-                cluster_analysis['cluster_details'][f'cluster_{cluster_id}'] = cluster_stats
-        
-        logger.info(f"Cluster analysis completed: {n_clusters} clusters, {n_outliers} outliers")
-        return cluster_analysis
-    
-    def build_predictive_model(self) -> Dict:
-        """Build a predictive model for business success based on environmental factors."""
-        if self.merged_data is None:
-            raise ValueError("Merged data not available.")
-        
-        # Define features and target
-        feature_columns = [
-            'env_temperature', 'env_humidity', 'env_air_quality', 'env_wind_speed', 'env_comfort_index'
-        ]
-        target_column = 'business_success_score'
-        
-        # Filter for available columns
-        available_features = [col for col in feature_columns if col in self.merged_data.columns]
-        
-        if target_column not in self.merged_data.columns:
-            logger.warning("Target variable not available for modeling")
-            return {}
-        
-        # Prepare data
-        model_data = self.merged_data[available_features + [target_column]].dropna()
-        
-        if len(model_data) < 10:
-            logger.warning("Insufficient data for predictive modeling")
-            return {}
-        
-        X = model_data[available_features]
-        y = model_data[target_column]
-        
-        # Split data
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
-        
-        # Train Random Forest model
-        rf_model = RandomForestRegressor(n_estimators=100, random_state=42)
-        rf_model.fit(X_train, y_train)
-        
-        # Make predictions
-        y_pred = rf_model.predict(X_test)
-        
-        # Calculate metrics
-        mse = mean_squared_error(y_test, y_pred)
-        r2 = r2_score(y_test, y_pred)
-        
-        # Feature importance
-        feature_importance = dict(zip(available_features, rf_model.feature_importances_))
-        
-        model_results = {
-            'model_type': 'Random Forest Regression',
-            'training_samples': len(X_train),
-            'test_samples': len(X_test),
-            'mse': mse,
-            'rmse': np.sqrt(mse),
-            'r2_score': r2,
-            'feature_importance': feature_importance,
-            'model_object': rf_model,
-            'scaler_object': None  # Could add feature scaling if needed
-        }
-        
-        logger.info(f"Predictive model built: R² = {r2:.3f}, RMSE = {np.sqrt(mse):.3f}")
-        return model_results
-    
-    def analyze_business_performance_by_environment(self) -> Dict:
-        """Analyze business performance patterns across different environmental conditions."""
-        if self.merged_data is None:
-            raise ValueError("Merged data not available.")
-        
-        performance_analysis = {}
-        
-        # Analysis by environmental comfort levels
-        if 'env_comfort_index' in self.merged_data.columns:
-            # Create comfort categories
-            comfort_data = self.merged_data.copy()
-            comfort_data['comfort_category'] = pd.cut(
-                comfort_data['env_comfort_index'],
-                bins=[0, 0.3, 0.6, 0.8, 1.0],
-                labels=['Poor', 'Fair', 'Good', 'Excellent'],
-                include_lowest=True
-            )
-            
-            # Calculate performance metrics by comfort category
-            comfort_performance = comfort_data.groupby('comfort_category').agg({
-                'business_success_score': ['count', 'mean', 'std'],
-                'business_rating': ['mean', 'std'],
-                'business_reviews': ['mean', 'median']
-            }).round(3)
-            
-            performance_analysis['by_comfort_level'] = comfort_performance.to_dict()
-        
-        # Analysis by air quality levels
-        if 'env_air_quality' in self.merged_data.columns:
-            aqi_data = self.merged_data.copy()
-            aqi_data['aqi_category'] = pd.cut(
-                aqi_data['env_air_quality'],
-                bins=[0, 50, 100, 150, 300],
-                labels=['Good', 'Moderate', 'Unhealthy', 'Very Unhealthy'],
-                include_lowest=True
-            )
-            
-            aqi_performance = aqi_data.groupby('aqi_category').agg({
-                'business_success_score': ['count', 'mean', 'std'],
-                'business_rating': ['mean', 'std']
-            }).round(3)
-            
-            performance_analysis['by_air_quality'] = aqi_performance.to_dict()
-        
-        # Analysis by temperature ranges
-        if 'env_temperature' in self.merged_data.columns:
-            temp_data = self.merged_data.copy()
-            temp_data['temp_category'] = pd.cut(
-                temp_data['env_temperature'],
-                bins=[-np.inf, 15, 20, 25, np.inf],
-                labels=['Cold', 'Cool', 'Moderate', 'Warm'],
-                include_lowest=True
-            )
-            
-            temp_performance = temp_data.groupby('temp_category').agg({
-                'business_success_score': ['count', 'mean', 'std'],
-                'business_rating': ['mean', 'std']
-            }).round(3)
-            
-            performance_analysis['by_temperature'] = temp_performance.to_dict()
-        
-        # Business category analysis
-        if 'business_category' in self.merged_data.columns:
-            category_performance = self.merged_data.groupby('business_category').agg({
-                'business_success_score': ['count', 'mean', 'std'],
-                'business_rating': ['mean', 'std'],
-                'env_comfort_index': ['mean', 'std']
-            }).round(3)
-            
-            performance_analysis['by_business_category'] = category_performance.to_dict()
-        
-        logger.info("Business performance analysis by environment completed")
-        return performance_analysis
-    
-    def generate_business_insights(self) -> Dict:
-        """Generate actionable business insights from the analysis."""
-        if self.merged_data is None:
-            raise ValueError("Merged data not available.")
-        
-        insights = {
-            'summary_statistics': {},
-            'key_findings': [],
-            'recommendations': [],
-            'risk_factors': [],
-            'opportunities': []
-        }
-        
-        # Summary statistics
-        if 'business_success_score' in self.merged_data.columns:
-            insights['summary_statistics']['total_businesses'] = len(self.merged_data)
-            insights['summary_statistics']['avg_success_score'] = self.merged_data['business_success_score'].mean()
-            insights['summary_statistics']['success_std'] = self.merged_data['business_success_score'].std()
-        
-        if 'env_comfort_index' in self.merged_data.columns:
-            insights['summary_statistics']['avg_comfort_index'] = self.merged_data['env_comfort_index'].mean()
-            insights['summary_statistics']['comfort_std'] = self.merged_data['env_comfort_index'].std()
-        
-        # Identify high and low performers
-        if 'business_success_score' in self.merged_data.columns:
-            high_performers = self.merged_data[self.merged_data['business_success_score'] > 0.7]
-            low_performers = self.merged_data[self.merged_data['business_success_score'] < 0.3]
-            
-            insights['summary_statistics']['high_performers_count'] = len(high_performers)
-            insights['summary_statistics']['low_performers_count'] = len(low_performers)
-            
-            if len(high_performers) > 0 and 'env_comfort_index' in self.merged_data.columns:
-                avg_comfort_high = high_performers['env_comfort_index'].mean()
-                insights['key_findings'].append(
-                    f"High-performing businesses (success score > 0.7) operate in areas with average comfort index of {avg_comfort_high:.3f}"
-                )
-            
-            if len(low_performers) > 0 and 'env_comfort_index' in self.merged_data.columns:
-                avg_comfort_low = low_performers['env_comfort_index'].mean()
-                insights['key_findings'].append(
-                    f"Low-performing businesses (success score < 0.3) operate in areas with average comfort index of {avg_comfort_low:.3f}"
-                )
-        
-        # Environmental recommendations
-        if 'env_comfort_index' in self.merged_data.columns and 'business_success_score' in self.merged_data.columns:
-            comfort_success_corr = self.merged_data['env_comfort_index'].corr(self.merged_data['business_success_score'])
-            
-            if comfort_success_corr > 0.3:
-                insights['recommendations'].append(
-                    "Prioritize locations with high environmental comfort index for new business ventures"
-                )
-                insights['recommendations'].append(
-                    "Consider environmental improvements (air quality, temperature control) to boost business performance"
-                )
-            
-            if comfort_success_corr < -0.3:
-                insights['risk_factors'].append(
-                    "Negative correlation between environmental comfort and business success detected - investigate further"
-                )
-        
-        # Air quality insights
-        if 'env_air_quality' in self.merged_data.columns and 'business_rating' in self.merged_data.columns:
-            aqi_rating_corr = self.merged_data['env_air_quality'].corr(self.merged_data['business_rating'])
-            
-            if aqi_rating_corr < -0.2:
-                insights['key_findings'].append(
-                    "Poor air quality negatively correlates with business ratings"
-                )
-                insights['recommendations'].append(
-                    "Consider air quality when selecting business locations, especially for customer-facing businesses"
-                )
-        
-        # Category-specific insights
-        if 'business_category' in self.merged_data.columns:
-            category_performance = self.merged_data.groupby('business_category')['business_success_score'].mean()
-            best_category = category_performance.idxmax()
-            worst_category = category_performance.idxmin()
-            
-            insights['key_findings'].append(
-                f"Best performing business category: {best_category} (avg success: {category_performance[best_category]:.3f})"
-            )
-            insights['key_findings'].append(
-                f"Lowest performing business category: {worst_category} (avg success: {category_performance[worst_category]:.3f})"
-            )
-        
-        # Opportunities
-        if 'env_comfort_index' in self.merged_data.columns:
-            high_comfort_areas = self.merged_data[self.merged_data['env_comfort_index'] > 0.8]
-            if len(high_comfort_areas) > 0:
-                insights['opportunities'].append(
-                    f"Identified {len(high_comfort_areas)} high-comfort locations with potential for business development"
-                )
-        
-        logger.info("Business insights generation completed")
-        return insights
-    
-    def run_comprehensive_analysis(self, env_file: str = None, business_file: str = None) -> AnalysisResults:
-        """Run the complete business performance analysis pipeline."""
+    def run_comprehensive_analysis(self) -> AnalysisResults:
+        """Run complete analysis with generated sample data."""
         logger.info("Starting comprehensive business performance analysis")
         
-        # Load data
-        if env_file and business_file:
-            self.load_data_from_csv(env_file, business_file)
-        else:
-            try:
-                self.load_data_from_database()
-            except:
-                logger.warning("Could not load from database, using simulated data")
-                self._generate_sample_data()
+        # Generate sample data for demonstration
+        self._generate_sample_data()
         
         # Perform spatial merge
         self.spatial_merge_datasets()
@@ -587,8 +43,6 @@ class BusinessPerformanceAnalyzer:
         correlation_matrix = self.calculate_correlation_matrix()
         statistical_tests = self.perform_statistical_significance_tests()
         cluster_analysis = self.perform_cluster_analysis()
-        predictive_model = self.build_predictive_model()
-        performance_analysis = self.analyze_business_performance_by_environment()
         business_insights = self.generate_business_insights()
         
         # Compile results
@@ -596,56 +50,69 @@ class BusinessPerformanceAnalyzer:
             correlation_matrix=correlation_matrix,
             statistical_tests=statistical_tests,
             cluster_analysis=cluster_analysis,
-            performance_metrics=predictive_model,
+            performance_metrics={},
             business_insights=business_insights
         )
-        
-        # Store results for later access
-        self.analysis_results = {
-            'correlation_matrix': correlation_matrix,
-            'statistical_tests': statistical_tests,
-            'cluster_analysis': cluster_analysis,
-            'predictive_model': predictive_model,
-            'performance_analysis': performance_analysis,
-            'business_insights': business_insights
-        }
         
         logger.info("Comprehensive analysis completed successfully")
         return results
     
     def _generate_sample_data(self):
-        """Generate sample data for testing when real data is not available."""
-        # Generate sample environmental data
+        """Generate realistic sample data for analysis."""
         np.random.seed(42)
-        n_env_points = 7
+        
+        # Generate environmental data
+        locations = [
+            {'lat': 40.7128, 'lon': -74.0060, 'name': 'Times Square'},
+            {'lat': 40.7589, 'lon': -73.9851, 'name': 'Central Park'},
+            {'lat': 40.7505, 'lon': -73.9934, 'name': 'Broadway'},
+            {'lat': 40.7282, 'lon': -74.0776, 'name': 'Financial District'},
+            {'lat': 40.7831, 'lon': -73.9712, 'name': 'Upper East Side'},
+            {'lat': 40.7614, 'lon': -73.9776, 'name': 'Lincoln Center'},
+            {'lat': 40.7549, 'lon': -73.9840, 'name': 'Columbus Circle'}
+        ]
         
         env_data = []
-        for i in range(n_env_points):
+        for i, loc in enumerate(locations):
+            temp = 20 + np.random.normal(0, 5)
+            humidity = 60 + np.random.normal(0, 15)
+            aqi = 50 + np.random.normal(0, 20)
+            wind = 2 + np.random.exponential(1)
+            
+            # Calculate comfort index
+            temp_comfort = max(0, 1 - abs(temp - 20) / 15)
+            humidity_comfort = max(0, 1 - abs(humidity - 50) / 40)
+            aqi_comfort = max(0, 1 - aqi / 150)
+            wind_comfort = max(0, 1 - abs(wind - 2) / 5)
+            
+            comfort_index = (temp_comfort * 0.3 + aqi_comfort * 0.3 + 
+                           humidity_comfort * 0.2 + wind_comfort * 0.2)
+            
             env_point = {
                 'id': i + 1,
-                'latitude': 40.7128 + np.random.normal(0, 0.01),
-                'longitude': -74.0060 + np.random.normal(0, 0.01),
-                'street_name': f'Test Area {i+1}',
-                'temperature_celsius': 20 + np.random.normal(0, 5),
-                'humidity_percent': 60 + np.random.normal(0, 15),
-                'air_quality_index': 50 + np.random.normal(0, 20),
-                'wind_speed_ms': 2 + np.random.exponential(1),
-                'comfort_index': np.random.uniform(0.3, 0.9),
+                'latitude': loc['lat'],
+                'longitude': loc['lon'],
+                'street_name': loc['name'],
+                'temperature_celsius': round(temp, 1),
+                'humidity_percent': round(np.clip(humidity, 0, 100), 1),
+                'air_quality_index': int(np.clip(aqi, 0, 300)),
+                'wind_speed_ms': round(max(0, wind), 1),
+                'comfort_index': round(comfort_index, 3),
                 'quality_score': np.random.uniform(0.7, 1.0)
             }
             env_data.append(env_point)
         
         self.env_data = pd.DataFrame(env_data)
         
-        # Generate sample business data
+        # Generate business data
         business_data = []
         business_id = 1
         
         for _, env_point in self.env_data.iterrows():
-            n_businesses = np.random.randint(3, 8)
+            n_businesses = np.random.randint(4, 8)
             
             for j in range(n_businesses):
-                # Environmental influence on business performance
+                # Environmental influence
                 env_bonus = (env_point['comfort_index'] - 0.5) * 0.4
                 
                 rating = 3.5 + env_bonus + np.random.normal(0, 0.5)
@@ -671,8 +138,230 @@ class BusinessPerformanceAnalyzer:
                 business_id += 1
         
         self.business_data = pd.DataFrame(business_data)
+        logger.info(f"Generated {len(self.env_data)} env points, {len(self.business_data)} businesses")
+    
+    def spatial_merge_datasets(self, max_distance: float = 200.0) -> pd.DataFrame:
+        """Perform spatial join between environmental and business data."""
+        if self.env_data is None or self.business_data is None:
+            raise ValueError("Data not loaded. Call _generate_sample_data first.")
         
-        logger.info(f"Generated sample data: {len(self.env_data)} env points, {len(self.business_data)} businesses")
+        logger.info(f"Performing spatial merge with max distance: {max_distance}m")
+        
+        merged_records = []
+        
+        for _, business in self.business_data.iterrows():
+            distances = []
+            for _, env_point in self.env_data.iterrows():
+                # Simple distance calculation
+                lat_diff = business['latitude'] - env_point['latitude']
+                lon_diff = business['longitude'] - env_point['longitude']
+                
+                lat_meters = lat_diff * 111000
+                lon_meters = lon_diff * 111000 * np.cos(np.radians(env_point['latitude']))
+                distance = np.sqrt(lat_meters**2 + lon_meters**2)
+                
+                distances.append(distance)
+            
+            # Find closest environmental point
+            min_distance_idx = np.argmin(distances)
+            min_distance = distances[min_distance_idx]
+            
+            if min_distance <= max_distance:
+                env_record = self.env_data.iloc[min_distance_idx]
+                
+                merged_record = {
+                    'business_id': business['business_id'],
+                    'business_name': business['name'],
+                    'business_category': business['category'],
+                    'business_rating': business['rating'],
+                    'business_reviews': business['review_count'],
+                    'business_success_score': business['success_score'],
+                    'business_price_level': business['price_level'],
+                    'business_is_open': business['is_open'],
+                    'env_temperature': env_record['temperature_celsius'],
+                    'env_humidity': env_record['humidity_percent'],
+                    'env_air_quality': env_record['air_quality_index'],
+                    'env_wind_speed': env_record['wind_speed_ms'],
+                    'env_comfort_index': env_record['comfort_index'],
+                    'env_quality_score': env_record['quality_score'],
+                    'distance_to_env_point': min_distance,
+                    'measurement_area': env_record['street_name'],
+                    'latitude': business['latitude'],
+                    'longitude': business['longitude']
+                }
+                
+                merged_records.append(merged_record)
+        
+        self.merged_data = pd.DataFrame(merged_records)
+        logger.info(f"Spatial merge completed: {len(self.merged_data)} business-environment pairs")
+        
+        return self.merged_data
+    
+    def calculate_correlation_matrix(self) -> pd.DataFrame:
+        """Calculate correlation matrix between environmental and business factors."""
+        if self.merged_data is None:
+            raise ValueError("Merged data not available.")
+        
+        correlation_columns = [
+            'env_temperature', 'env_humidity', 'env_air_quality', 'env_wind_speed', 'env_comfort_index',
+            'business_rating', 'business_reviews', 'business_success_score', 'business_price_level'
+        ]
+        
+        available_columns = [col for col in correlation_columns if col in self.merged_data.columns]
+        correlation_data = self.merged_data[available_columns].copy()
+        correlation_data = correlation_data.dropna()
+        
+        correlation_matrix = correlation_data.corr()
+        logger.info(f"Correlation matrix calculated for {len(available_columns)} variables")
+        return correlation_matrix
+    
+    def perform_statistical_significance_tests(self) -> Dict:
+        """Perform statistical tests for key relationships."""
+        if self.merged_data is None:
+            raise ValueError("Merged data not available.")
+        
+        test_results = {}
+        
+        # Test: Environmental comfort vs Business success
+        if 'env_comfort_index' in self.merged_data.columns and 'business_success_score' in self.merged_data.columns:
+            aligned_data = self.merged_data[['env_comfort_index', 'business_success_score']].dropna()
+            
+            if len(aligned_data) > 5:
+                correlation, p_value = stats.pearsonr(
+                    aligned_data['env_comfort_index'], 
+                    aligned_data['business_success_score']
+                )
+                
+                test_results['comfort_vs_success'] = {
+                    'correlation': round(correlation, 4),
+                    'p_value': round(p_value, 4),
+                    'significant': p_value < 0.05,
+                    'sample_size': len(aligned_data),
+                    'interpretation': self._interpret_correlation(correlation, p_value)
+                }
+        
+        # Test: Air quality vs Business rating
+        if 'env_air_quality' in self.merged_data.columns and 'business_rating' in self.merged_data.columns:
+            aligned_data = self.merged_data[['env_air_quality', 'business_rating']].dropna()
+            
+            if len(aligned_data) > 5:
+                correlation, p_value = stats.pearsonr(
+                    aligned_data['env_air_quality'], 
+                    aligned_data['business_rating']
+                )
+                
+                test_results['air_quality_vs_rating'] = {
+                    'correlation': round(correlation, 4),
+                    'p_value': round(p_value, 4),
+                    'significant': p_value < 0.05,
+                    'sample_size': len(aligned_data),
+                    'interpretation': self._interpret_correlation(correlation, p_value)
+                }
+        
+        logger.info(f"Statistical tests completed: {len(test_results)} tests performed")
+        return test_results
+    
+    def _interpret_correlation(self, correlation: float, p_value: float) -> str:
+        """Interpret correlation strength and significance."""
+        if p_value >= 0.05:
+            return "Not statistically significant"
+        
+        abs_corr = abs(correlation)
+        if abs_corr >= 0.7:
+            strength = "Strong"
+        elif abs_corr >= 0.5:
+            strength = "Moderate"
+        elif abs_corr >= 0.3:
+            strength = "Weak"
+        else:
+            strength = "Very weak"
+        
+        direction = "positive" if correlation > 0 else "negative"
+        return f"{strength} {direction} correlation (statistically significant)"
+    
+    def perform_cluster_analysis(self) -> Dict:
+        """Perform basic clustering analysis."""
+        if self.merged_data is None:
+            raise ValueError("Merged data not available.")
+        
+        # Simple analysis by comfort categories
+        if 'env_comfort_index' in self.merged_data.columns:
+            comfort_categories = pd.cut(
+                self.merged_data['env_comfort_index'],
+                bins=[0, 0.3, 0.6, 0.8, 1.0],
+                labels=['Poor', 'Fair', 'Good', 'Excellent'],
+                include_lowest=True
+            )
+            
+            category_analysis = {}
+            for category in comfort_categories.unique():
+                if pd.notna(category):
+                    category_data = self.merged_data[comfort_categories == category]
+                    
+                    category_analysis[str(category)] = {
+                        'count': len(category_data),
+                        'avg_business_success': category_data['business_success_score'].mean(),
+                        'avg_business_rating': category_data['business_rating'].mean()
+                    }
+            
+            cluster_analysis = {
+                'method': 'comfort_categorization',
+                'categories': category_analysis,
+                'total_points': len(self.merged_data)
+            }
+            
+            logger.info("Cluster analysis completed using comfort categories")
+            return cluster_analysis
+        
+        return {}
+    
+    def generate_business_insights(self) -> Dict:
+        """Generate actionable business insights."""
+        if self.merged_data is None:
+            raise ValueError("Merged data not available.")
+        
+        insights = {
+            'summary_statistics': {},
+            'key_findings': [],
+            'recommendations': []
+        }
+        
+        # Summary statistics
+        insights['summary_statistics']['total_businesses'] = len(self.merged_data)
+        insights['summary_statistics']['avg_success_score'] = round(self.merged_data['business_success_score'].mean(), 3)
+        insights['summary_statistics']['avg_comfort_index'] = round(self.merged_data['env_comfort_index'].mean(), 3)
+        
+        # High vs low performers
+        high_performers = self.merged_data[self.merged_data['business_success_score'] > 0.7]
+        low_performers = self.merged_data[self.merged_data['business_success_score'] < 0.3]
+        
+        if len(high_performers) > 0:
+            avg_comfort_high = high_performers['env_comfort_index'].mean()
+            insights['key_findings'].append(
+                f"High-performing businesses operate in areas with avg comfort index of {avg_comfort_high:.3f}"
+            )
+        
+        if len(low_performers) > 0:
+            avg_comfort_low = low_performers['env_comfort_index'].mean()
+            insights['key_findings'].append(
+                f"Low-performing businesses operate in areas with avg comfort index of {avg_comfort_low:.3f}"
+            )
+        
+        # Correlation insights
+        if 'env_comfort_index' in self.merged_data.columns and 'business_success_score' in self.merged_data.columns:
+            comfort_success_corr = self.merged_data['env_comfort_index'].corr(self.merged_data['business_success_score'])
+            
+            if comfort_success_corr > 0.3:
+                insights['recommendations'].append(
+                    "Prioritize locations with high environmental comfort for new ventures"
+                )
+            elif comfort_success_corr < -0.3:
+                insights['recommendations'].append(
+                    "Investigate negative correlation between comfort and success"
+                )
+        
+        logger.info("Business insights generation completed")
+        return insights
 
 
 def main_analysis_pipeline():
@@ -680,10 +369,8 @@ def main_analysis_pipeline():
     analyzer = BusinessPerformanceAnalyzer()
     
     try:
-        # Run comprehensive analysis
         results = analyzer.run_comprehensive_analysis()
         
-        # Print key results
         print("\\n=== BUSINESS PERFORMANCE ANALYSIS RESULTS ===")
         print(f"Merged dataset size: {len(analyzer.merged_data)} business-environment pairs")
         
@@ -696,14 +383,19 @@ def main_analysis_pipeline():
         # Cluster analysis
         if results.cluster_analysis:
             print(f"\\n--- Cluster Analysis ---")
-            print(f"Identified {results.cluster_analysis['n_clusters']} environmental-business clusters")
-            print(f"Outliers detected: {results.cluster_analysis['n_outliers']}")
+            if 'categories' in results.cluster_analysis:
+                for category, stats in results.cluster_analysis['categories'].items():
+                    print(f"{category}: {stats['count']} businesses, avg success: {stats['avg_business_success']:.3f}")
         
         # Business insights
         if results.business_insights:
             print("\\n--- Key Business Insights ---")
             for finding in results.business_insights.get('key_findings', []):
                 print(f"• {finding}")
+            
+            print("\\n--- Recommendations ---")
+            for rec in results.business_insights.get('recommendations', []):
+                print(f"• {rec}")
         
         return results
         

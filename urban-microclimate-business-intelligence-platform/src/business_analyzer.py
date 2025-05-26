@@ -34,3 +34,39 @@ class BusinessPerformanceAnalyzer:
         self.merged_data = None
         self.analysis_results = {}
         logger.info("Business Performance Analyzer initialized")
+
+    def load_data_from_database(self) -> Tuple[pd.DataFrame, pd.DataFrame]:
+        """Load environmental and business data from database."""
+        try:
+            conn = sqlite3.connect(self.database_path)
+            
+            # Load environmental data
+            env_query = """
+            SELECT * FROM environmental_data 
+            ORDER BY timestamp DESC
+            """
+            self.env_data = pd.read_sql_query(env_query, conn)
+            
+            # Load business data (simulated table for demo)
+            # In real implementation, this would come from actual business data table
+            conn.close()
+            
+            logger.info(f"Loaded {len(self.env_data)} environmental records from database")
+            return self.env_data, self.business_data
+            
+        except Exception as e:
+            logger.error(f"Failed to load data from database: {e}")
+            raise
+    
+    def load_data_from_csv(self, env_file: str, business_file: str) -> Tuple[pd.DataFrame, pd.DataFrame]:
+        """Load data from CSV files."""
+        try:
+            self.env_data = pd.read_csv(env_file)
+            self.business_data = pd.read_csv(business_file)
+            
+            logger.info(f"Loaded {len(self.env_data)} environmental and {len(self.business_data)} business records")
+            return self.env_data, self.business_data
+            
+        except Exception as e:
+            logger.error(f"Failed to load CSV data: {e}")
+            raise

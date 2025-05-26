@@ -164,3 +164,180 @@ class EnvironmentalDataCollector:
         
         return {'aqi': int(round(aqi))}
 
+    def _calculate_comfort_index(self, measurement: Dict) -> float:
+        """Calculate environmental comfort index using domain expertise."""
+        # Temperature comfort (optimal: 20°C)
+        temp_comfort = max(0, 1 - abs(measurement['temperature_celsius'] - 20) / 15)
+        
+        # Humidity comfort (optimal: 50%)
+        humidity_comfort = max(0, 1 - abs(measurement['humidity_percent'] - 50) / 50)
+        
+        # Air quality comfort (lower AQI is better)
+        aqi_comfort = max(0, 1 - measurement['air_quality_index'] / 150)
+        
+        # Wind comfort (light breeze optimal: 2 m/s)
+        wind_comfort = max(0, 1 - abs(measurement['wind_speed_ms'] - 2) / 5)
+        
+        # Weighted composite (based on environmental psychology research)
+        comfort_index = (
+            temp_comfort * 0.35 +
+            aqi_comfort * 0.30 +
+            humidity_comfort * 0.20 +
+            wind_comfort * 0.15
+        )
+        
+        return round(comfort_index, 3)
+    
+    def _validate_data(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Apply data quality validation."""
+        # Remove rows with invalid data
+        df = df[
+            (df['temperature_celsius'].between(-30, 50)) &
+            (df['humidity_percent'].between(0, 100)) &
+            (df['air_quality_index'].between(0, 300))
+        ]
+        
+        # Remove duplicates
+        df = df.drop_duplicates(subset=['latitude', 'longitude'])
+        
+        logger.info(f"Data validation: {len(df)} measurements passed quality checks")
+        return df
+    
+    def _save_to_database(self, df: pd.DataFrame) -> None:
+        """Persist data to database with error handling."""
+        try:
+            df.to_sql('environmental_data', self.db_connection, if_exists='append', index=False)
+            logger.info(f"Saved {len(df)} measurements to database")
+        except Exception as e:
+            logger.error(f"Database save failed: {e}")
+
+
+class BusinessDataCollector:
+    """Professional business performance data collection and modeling."""
+    
+    def __init__(self):
+        logger.info("Business data collector initialized")
+    
+    def generate_business_ecosystem(self, environmental_df: pd.DataFrame) -> pd.DataFrame:
+        """Generate realistic business ecosystem with environmental correlations."""
+        logger.info("Generating realistic business ecosystem")
+        
+        # Business categories with environmental sensitivity
+        business_types = {
+            'restaurant': {'probability': 0.25, 'env_sensitivity': 0.8},
+            'cafe': {'probability': 0.15, 'env_sensitivity': 0.9},
+            'retail': {'probability': 0.20, 'env_sensitivity': 0.6},
+            'pharmacy': {'probability': 0.10, 'env_sensitivity': 0.3},
+            'bank': {'probability': 0.10, 'env_sensitivity': 0.2},
+            'fitness': {'probability': 0.10, 'env_sensitivity': 0.7},
+            'salon': {'probability': 0.10, 'env_sensitivity': 0.5}
+        }
+        
+        businesses = []
+        business_id = 1
+        
+        for _, env_point in environmental_df.iterrows():
+            # Generate 4-7 businesses per environmental point
+            num_businesses = np.random.randint(4, 8)
+            
+            for i in range(num_businesses):
+                # Select business type
+                types = list(business_types.keys())
+                weights = [business_types[t]['probability'] for t in types]
+                business_type = np.random.choice(types, p=weights)
+                
+                # Generate business location near environmental point
+                lat_offset = np.random.normal(0, 0.001)  # ~100m variation
+                lon_offset = np.random.normal(0, 0.001)
+                
+                # Environmental impact on performance
+                env_sensitivity = business_types[business_type]['env_sensitivity']
+                env_bonus = self._calculate_environmental_impact(env_point, env_sensitivity)
+                
+                # Generate performance metrics
+                performance = self._generate_performance_metrics(business_type, env_bonus)
+                
+                business = {
+                    'business_id': f'BIZ_{business_id:05d}',
+                    'name': f'{business_type.title()} #{business_id % 50}',
+                    'category': business_type,
+                    'latitude': env_point['latitude'] + lat_offset,
+                    'longitude': env_point['longitude'] + lon_offset,
+                    'measurement_area': env_point['street_name'],
+                    'rating': performance['rating'],
+                    'review_count': performance['reviews'],
+                    'price_level': performance['price'],
+                    'is_open': performance['operational'],
+                    'success_score': performance['success_score'],
+                    'env_sensitivity': env_sensitivity,
+                    'env_bonus': env_bonus
+                }
+                
+                businesses.append(business)
+                business_id += 1
+        
+        business_df = pd.DataFrame(businesses)
+        logger.info(f"Generated {len(business_df)} businesses in ecosystem")
+        return business_df
+    
+    def _calculate_environmental_impact(self, env_data: pd.Series, sensitivity: float) -> float:
+        """Calculate how environmental conditions affect business performance."""
+        impact = 0.0
+        
+        # Temperature impact (optimal: 18-24°C)
+        temp = env_data['temperature_celsius']
+        if 18 <= temp <= 24:
+            impact += 0.3
+        elif 15 <= temp <= 27:
+            impact += 0.1
+        else:
+            impact -= 0.2
+        
+        # Air quality impact
+        aqi = env_data['air_quality_index']
+        if aqi <= 50:
+            impact += 0.2
+        elif aqi <= 100:
+            impact += 0.0
+        else:
+            impact -= 0.3
+        
+        # Apply business sensitivity
+        return round(impact * sensitivity, 3)
+    
+    def _generate_performance_metrics(self, business_type: str, env_bonus: float) -> Dict:
+        """Generate realistic business performance with environmental influence."""
+        # Base performance by category
+        base_metrics = {
+            'restaurant': {'rating': 3.8, 'reviews': 85, 'price': 2},
+            'cafe': {'rating': 4.1, 'reviews': 60, 'price': 2},
+            'retail': {'rating': 3.6, 'reviews': 45, 'price': 2},
+            'pharmacy': {'rating': 3.9, 'reviews': 25, 'price': 1},
+            'bank': {'rating': 3.2, 'reviews': 15, 'price': 1},
+            'fitness': {'rating': 4.0, 'reviews': 120, 'price': 3},
+            'salon': {'rating': 4.2, 'reviews': 40, 'price': 2}
+        }
+        
+        base = base_metrics.get(business_type, base_metrics['retail'])
+        
+        # Apply environmental bonus
+        rating = np.clip(base['rating'] + env_bonus + np.random.normal(0, 0.3), 1.0, 5.0)
+        
+        # Reviews influenced by rating and environment
+        review_multiplier = 1 + env_bonus + (rating - 3.5) * 0.2
+        reviews = max(1, int(base['reviews'] * review_multiplier * np.random.uniform(0.7, 1.5)))
+        
+        # Calculate success score
+        rating_score = (rating - 1) / 4
+        review_score = np.log1p(reviews) / np.log1p(200)  # Normalize reviews
+        success_score = (rating_score * 0.6 + review_score * 0.4)
+        
+        return {
+            'rating': round(rating, 1),
+            'reviews': reviews,
+            'price': base['price'],
+            'operational': np.random.choice([True, False], p=[0.9, 0.1]),
+            'success_score': round(success_score, 3)
+        }
+
+

@@ -470,3 +470,99 @@ class BusinessPerformanceAnalyzer:
         logger.info("Business performance analysis by environment completed")
         return performance_analysis
     
+    def generate_business_insights(self) -> Dict:
+        """Generate actionable business insights from the analysis."""
+        if self.merged_data is None:
+            raise ValueError("Merged data not available.")
+        
+        insights = {
+            'summary_statistics': {},
+            'key_findings': [],
+            'recommendations': [],
+            'risk_factors': [],
+            'opportunities': []
+        }
+        
+        # Summary statistics
+        if 'business_success_score' in self.merged_data.columns:
+            insights['summary_statistics']['total_businesses'] = len(self.merged_data)
+            insights['summary_statistics']['avg_success_score'] = self.merged_data['business_success_score'].mean()
+            insights['summary_statistics']['success_std'] = self.merged_data['business_success_score'].std()
+        
+        if 'env_comfort_index' in self.merged_data.columns:
+            insights['summary_statistics']['avg_comfort_index'] = self.merged_data['env_comfort_index'].mean()
+            insights['summary_statistics']['comfort_std'] = self.merged_data['env_comfort_index'].std()
+        
+        # Identify high and low performers
+        if 'business_success_score' in self.merged_data.columns:
+            high_performers = self.merged_data[self.merged_data['business_success_score'] > 0.7]
+            low_performers = self.merged_data[self.merged_data['business_success_score'] < 0.3]
+            
+            insights['summary_statistics']['high_performers_count'] = len(high_performers)
+            insights['summary_statistics']['low_performers_count'] = len(low_performers)
+            
+            if len(high_performers) > 0 and 'env_comfort_index' in self.merged_data.columns:
+                avg_comfort_high = high_performers['env_comfort_index'].mean()
+                insights['key_findings'].append(
+                    f"High-performing businesses (success score > 0.7) operate in areas with average comfort index of {avg_comfort_high:.3f}"
+                )
+            
+            if len(low_performers) > 0 and 'env_comfort_index' in self.merged_data.columns:
+                avg_comfort_low = low_performers['env_comfort_index'].mean()
+                insights['key_findings'].append(
+                    f"Low-performing businesses (success score < 0.3) operate in areas with average comfort index of {avg_comfort_low:.3f}"
+                )
+        
+        # Environmental recommendations
+        if 'env_comfort_index' in self.merged_data.columns and 'business_success_score' in self.merged_data.columns:
+            comfort_success_corr = self.merged_data['env_comfort_index'].corr(self.merged_data['business_success_score'])
+            
+            if comfort_success_corr > 0.3:
+                insights['recommendations'].append(
+                    "Prioritize locations with high environmental comfort index for new business ventures"
+                )
+                insights['recommendations'].append(
+                    "Consider environmental improvements (air quality, temperature control) to boost business performance"
+                )
+            
+            if comfort_success_corr < -0.3:
+                insights['risk_factors'].append(
+                    "Negative correlation between environmental comfort and business success detected - investigate further"
+                )
+        
+        # Air quality insights
+        if 'env_air_quality' in self.merged_data.columns and 'business_rating' in self.merged_data.columns:
+            aqi_rating_corr = self.merged_data['env_air_quality'].corr(self.merged_data['business_rating'])
+            
+            if aqi_rating_corr < -0.2:
+                insights['key_findings'].append(
+                    "Poor air quality negatively correlates with business ratings"
+                )
+                insights['recommendations'].append(
+                    "Consider air quality when selecting business locations, especially for customer-facing businesses"
+                )
+        
+        # Category-specific insights
+        if 'business_category' in self.merged_data.columns:
+            category_performance = self.merged_data.groupby('business_category')['business_success_score'].mean()
+            best_category = category_performance.idxmax()
+            worst_category = category_performance.idxmin()
+            
+            insights['key_findings'].append(
+                f"Best performing business category: {best_category} (avg success: {category_performance[best_category]:.3f})"
+            )
+            insights['key_findings'].append(
+                f"Lowest performing business category: {worst_category} (avg success: {category_performance[worst_category]:.3f})"
+            )
+        
+        # Opportunities
+        if 'env_comfort_index' in self.merged_data.columns:
+            high_comfort_areas = self.merged_data[self.merged_data['env_comfort_index'] > 0.8]
+            if len(high_comfort_areas) > 0:
+                insights['opportunities'].append(
+                    f"Identified {len(high_comfort_areas)} high-comfort locations with potential for business development"
+                )
+        
+        logger.info("Business insights generation completed")
+        return insights
+    

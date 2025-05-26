@@ -341,3 +341,40 @@ class BusinessDataCollector:
         }
 
 
+def main_collection_pipeline():
+    """Execute complete data collection pipeline."""
+    logger.info("Starting Urban Micro-Climate Data Collection Pipeline")
+    
+    # Define sample locations for analysis
+    locations = [
+        LocationPoint(40.7128, -74.0060, 'Times Square Business District'),
+        LocationPoint(40.7589, -73.9851, 'Central Park Commercial Zone'),
+        LocationPoint(40.7505, -73.9934, 'Broadway Theater District'),
+        LocationPoint(40.7282, -74.0776, 'Financial District'),
+        LocationPoint(40.7831, -73.9712, 'Upper East Side Commercial')
+    ]
+    
+    try:
+        # Initialize collectors
+        env_collector = EnvironmentalDataCollector()
+        business_collector = BusinessDataCollector()
+        
+        # Collect data
+        env_data = env_collector.collect_environmental_data(locations)
+        business_data = business_collector.generate_business_ecosystem(env_data)
+        
+        logger.info("Data collection pipeline completed successfully")
+        logger.info(f"Environmental measurements: {len(env_data)}")
+        logger.info(f"Business profiles: {len(business_data)}")
+        
+        return env_data, business_data
+        
+    except Exception as e:
+        logger.error(f"Pipeline failed: {e}")
+        raise
+
+if __name__ == "__main__":
+    # Test the module
+    env_df, biz_df = main_collection_pipeline()
+    print(f"✅ Module 1 completed: {len(env_df)} env points, {len(biz_df)} businesses")
+

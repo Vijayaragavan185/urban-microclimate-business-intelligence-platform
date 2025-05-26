@@ -257,3 +257,82 @@ class BusinessPerformanceAnalyzer:
         
         logger.info(f"Statistical tests completed: {len(test_results)} tests performed")
         return test_results
+    def _interpret_correlation(self, correlation: float, p_value: float) -> str:
+        """Interpret correlation strength and significance."""
+        if p_value >= 0.05:
+            return "Not statistically significant"
+        
+        abs_corr = abs(correlation)
+        if abs_corr >= 0.7:
+            strength = "Strong"
+        elif abs_corr >= 0.5:
+            strength = "Moderate"
+        elif abs_corr >= 0.3:
+            strength = "Weak"
+        else:
+            strength = "Very weak"
+        
+        direction = "positive" if correlation > 0 else "negative"
+        return f"{strength} {direction} correlation (statistically significant)"
+    
+    def perform_cluster_analysis(self) -> Dict:
+        """Perform clustering analysis on environmental-business data."""
+        if self.merged_data is None:
+            raise ValueError("Merged data not available.")
+        
+        # Select features for clustering
+        cluster_features = [
+            'env_temperature', 'env_humidity', 'env_air_quality', 'env_comfort_index',
+            'business_rating', 'business_success_score'
+        ]
+        
+        # Filter for available columns and remove missing values
+        available_features = [col for col in cluster_features if col in self.merged_data.columns]
+        cluster_data = self.merged_data[available_features].dropna()
+        
+        if len(cluster_data) < 5:
+            logger.warning("Insufficient data for clustering analysis")
+            return {}
+        
+        # Standardize features
+        scaler = StandardScaler()
+        scaled_data = scaler.fit_transform(cluster_data)
+        
+        # Perform DBSCAN clustering
+        clustering = DBSCAN(eps=0.5, min_samples=3).fit(scaled_data)
+        
+        # Add cluster labels to data
+        cluster_data_with_labels = cluster_data.copy()
+        cluster_data_with_labels['cluster'] = clustering.labels_
+        
+        # Analyze clusters
+        unique_clusters = set(clustering.labels_)
+        n_clusters = len(unique_clusters) - (1 if -1 in unique_clusters else 0)
+        n_outliers = list(clustering.labels_).count(-1)
+        
+        cluster_analysis = {
+            'n_clusters': n_clusters,
+            'n_outliers': n_outliers,
+            'total_points': len(cluster_data),
+            'cluster_details': {}
+        }
+        
+        # Analyze each cluster
+        for cluster_id in unique_clusters:
+            if cluster_id != -1:  # Skip outliers
+                cluster_points = cluster_data_with_labels[cluster_data_with_labels['cluster'] == cluster_id]
+                
+                cluster_stats = {
+                    'size': len(cluster_points),
+                    'percentage': len(cluster_points) / len(cluster_data) * 100
+                }
+                
+                # Calculate mean values for each feature
+                for feature in available_features:
+                    cluster_stats[f'mean_{feature}'] = cluster_points[feature].mean()
+                
+                cluster_analysis['cluster_details'][f'cluster_{cluster_id}'] = cluster_stats
+        
+        logger.info(f"Cluster analysis completed: {n_clusters} clusters, {n_outliers} outliers")
+        return cluster_analysis
+    

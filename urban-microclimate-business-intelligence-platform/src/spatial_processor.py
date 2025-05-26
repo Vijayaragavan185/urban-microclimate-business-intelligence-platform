@@ -348,3 +348,53 @@ class SpatialProcessor:
         
         return m
 
+def test_spatial_processor():
+    """Test spatial processing functionality."""
+    # Create sample data
+    np.random.seed(42)
+    
+    # Environmental points
+    env_points = pd.DataFrame({
+        'latitude': [40.7128, 40.7589, 40.7505, 40.7282, 40.7831] + 
+                   list(40.75 + np.random.normal(0, 0.01, 5)),
+        'longitude': [-74.0060, -73.9851, -73.9934, -74.0776, -73.9712] + 
+                    list(-74.0 + np.random.normal(0, 0.01, 5)),
+        'type': 'environmental',
+        'comfort_index': np.random.uniform(0.3, 0.9, 10)
+    })
+    
+    # Business points
+    business_points = pd.DataFrame({
+        'latitude': 40.75 + np.random.normal(0, 0.005, 20),
+        'longitude': -74.0 + np.random.normal(0, 0.005, 20),
+        'type': 'business',
+        'success_score': np.random.uniform(0.2, 0.8, 20)
+    })
+    
+    # Test spatial processor
+    processor = SpatialProcessor()
+    
+    # Test distance matrix
+    distance_matrix = processor.calculate_distance_matrix(env_points)
+    print(f"Distance matrix shape: {distance_matrix.shape}")
+    
+    # Test spatial join
+    joined_data = processor.spatial_join(business_points, env_points, max_distance=500)
+    print(f"Spatial join results: {len(joined_data)} matches")
+    
+    # Test nearest neighbors
+    neighbors = processor.find_nearest_neighbors(business_points, env_points, k=3)
+    print(f"Nearest neighbors found: {len(neighbors)} relationships")
+    
+    # Test clustering
+    clustered_points, cluster_summary = processor.create_spatial_clusters(
+        pd.concat([env_points, business_points]), cluster_distance=200
+    )
+    print(f"Spatial clustering: {clustered_points['cluster_id'].nunique()} clusters")
+    
+    return processor, joined_data, clustered_points
+
+
+if __name__ == "__main__":
+    processor, joined_data, clustered_data = test_spatial_processor()
+    print("✅ Spatial processor module completed successfully!")

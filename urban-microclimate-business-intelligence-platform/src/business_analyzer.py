@@ -336,3 +336,63 @@ class BusinessPerformanceAnalyzer:
         logger.info(f"Cluster analysis completed: {n_clusters} clusters, {n_outliers} outliers")
         return cluster_analysis
     
+    def build_predictive_model(self) -> Dict:
+        """Build a predictive model for business success based on environmental factors."""
+        if self.merged_data is None:
+            raise ValueError("Merged data not available.")
+        
+        # Define features and target
+        feature_columns = [
+            'env_temperature', 'env_humidity', 'env_air_quality', 'env_wind_speed', 'env_comfort_index'
+        ]
+        target_column = 'business_success_score'
+        
+        # Filter for available columns
+        available_features = [col for col in feature_columns if col in self.merged_data.columns]
+        
+        if target_column not in self.merged_data.columns:
+            logger.warning("Target variable not available for modeling")
+            return {}
+        
+        # Prepare data
+        model_data = self.merged_data[available_features + [target_column]].dropna()
+        
+        if len(model_data) < 10:
+            logger.warning("Insufficient data for predictive modeling")
+            return {}
+        
+        X = model_data[available_features]
+        y = model_data[target_column]
+        
+        # Split data
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+        
+        # Train Random Forest model
+        rf_model = RandomForestRegressor(n_estimators=100, random_state=42)
+        rf_model.fit(X_train, y_train)
+        
+        # Make predictions
+        y_pred = rf_model.predict(X_test)
+        
+        # Calculate metrics
+        mse = mean_squared_error(y_test, y_pred)
+        r2 = r2_score(y_test, y_pred)
+        
+        # Feature importance
+        feature_importance = dict(zip(available_features, rf_model.feature_importances_))
+        
+        model_results = {
+            'model_type': 'Random Forest Regression',
+            'training_samples': len(X_train),
+            'test_samples': len(X_test),
+            'mse': mse,
+            'rmse': np.sqrt(mse),
+            'r2_score': r2,
+            'feature_importance': feature_importance,
+            'model_object': rf_model,
+            'scaler_object': None  # Could add feature scaling if needed
+        }
+        
+        logger.info(f"Predictive model built: R² = {r2:.3f}, RMSE = {np.sqrt(mse):.3f}")
+        return model_results
+    

@@ -236,3 +236,56 @@ class SpatialProcessor:
                 density_grid.append(density_cell)
         
         return pd.DataFrame(density_grid)
+    
+    def create_spatial_clusters(self, points_df: pd.DataFrame, cluster_distance: float = 300) -> pd.DataFrame:
+        """Group nearby points into spatial clusters."""
+        points_with_clusters = points_df.copy()
+        points_with_clusters['cluster_id'] = -1  # Unassigned
+        
+        cluster_id = 0
+        unassigned_mask = points_with_clusters['cluster_id'] == -1
+        
+        while unassigned_mask.any():
+            # Start new cluster with first unassigned point
+            seed_idx = points_with_clusters[unassigned_mask].index[0]
+            seed_point = points_with_clusters.loc[seed_idx]
+            
+            # Assign seed to new cluster
+            points_with_clusters.loc[seed_idx, 'cluster_id'] = cluster_id
+            cluster_points = [seed_idx]
+            
+            # Find all points within cluster_distance of any cluster point
+            changed = True
+            while changed:
+                changed = False
+                
+                for cluster_point_idx in cluster_points:
+                    cluster_point = points_with_clusters.loc[cluster_point_idx]
+                    
+                    # Find unassigned points near this cluster point
+                    for idx, point in points_with_clusters[unassigned_mask].iterrows():
+                        distance = geodesic(
+                            (cluster_point['latitude'], cluster_point['longitude']),
+                            (point['latitude'], point['longitude'])
+                        ).meters
+                        
+                        if distance <= cluster_distance:
+                            points_with_clusters.loc[idx, 'cluster_id'] = cluster_id
+                            cluster_points.append(idx)
+                            changed = True
+                
+                # Update unassigned mask
+                unassigned_mask = points_with_clusters['cluster_id'] == -1
+            
+            cluster_id += 1
+        
+        # Add cluster summary statistics
+        cluster_summary = points_with_clusters.groupby('cluster_id').agg({
+            'latitude': ['count', 'mean', 'std'],
+            'longitude': ['mean', 'std']
+        }).round(6)
+        
+        logger.info(f"Created {cluster_id} spatial clusters")
+        
+        return points_with_clusters, cluster_summary
+    

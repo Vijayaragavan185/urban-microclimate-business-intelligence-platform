@@ -376,5 +376,5 @@ def main_collection_pipeline():
 if __name__ == "__main__":
     # Test the module
     env_df, biz_df = main_collection_pipeline()
-    print(f"✅ Module 1 completed: {len(env_df)} env points, {len(biz_df)} businesses")
+    print(f"Data Collection completed: {len(env_df)} env points, {len(biz_df)} businesses")
 

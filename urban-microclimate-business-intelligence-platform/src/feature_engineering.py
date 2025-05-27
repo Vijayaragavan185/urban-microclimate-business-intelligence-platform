@@ -315,4 +315,36 @@ class FeatureEngineer:
         logger.info(f"Numerical scaling completed for {len(numerical_cols)} variables")
         return df_featured
     
+    def create_pca_features(self, df: pd.DataFrame, feature_cols: list, n_components: int = 3) -> pd.DataFrame:
+        """Create PCA features for dimensionality reduction."""
+        df_featured = df.copy()
+        
+        # Select only numerical columns that exist
+        available_cols = [col for col in feature_cols if col in df.columns]
+        
+        if len(available_cols) < 2:
+            logger.warning("Insufficient features for PCA")
+            return df_featured
+        
+        # Prepare data
+        pca_data = df_featured[available_cols].fillna(0)
+        
+        # Standardize first
+        scaler = StandardScaler()
+        pca_data_scaled = scaler.fit_transform(pca_data)
+        
+        # Apply PCA
+        pca = PCA(n_components=min(n_components, len(available_cols)))
+        pca_features = pca.fit_transform(pca_data_scaled)
+        
+        # Add PCA features to dataframe
+        for i in range(pca.n_components_):
+            df_featured[f'pca_component_{i+1}'] = pca_features[:, i]
+        
+        # Store explained variance info
+        self.feature_definitions['pca_explained_variance'] = pca.explained_variance_ratio_
+        
+        logger.info(f"PCA features created: {pca.n_components_} components explaining {pca.explained_variance_ratio_.sum():.3f} of variance")
+        return df_featured
+    
 

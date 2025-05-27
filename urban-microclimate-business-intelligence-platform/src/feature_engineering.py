@@ -382,3 +382,42 @@ class FeatureEngineer:
         return env_featured, business_featured
 
 
+def test_feature_engineering():
+    """Test feature engineering functionality."""
+    # Create sample data
+    np.random.seed(42)
+    
+    env_data = pd.DataFrame({
+        'latitude': 40.75 + np.random.normal(0, 0.01, 10),
+        'longitude': -74.0 + np.random.normal(0, 0.01, 10),
+        'temperature_celsius': 20 + np.random.normal(0, 5, 10),
+        'humidity_percent': 60 + np.random.normal(0, 15, 10),
+        'air_quality_index': 50 + np.random.normal(0, 20, 10),
+        'wind_speed_ms': 2 + np.random.exponential(1, 10),
+        'timestamp': pd.date_range('2024-01-01', periods=10, freq='H')
+    })
+    
+    business_data = pd.DataFrame({
+        'latitude': 40.75 + np.random.normal(0, 0.01, 20),
+        'longitude': -74.0 + np.random.normal(0, 0.01, 20),
+        'rating': 3.5 + np.random.normal(0, 0.8, 20),
+        'review_count': np.random.randint(10, 200, 20),
+        'price_level': np.random.randint(1, 5, 20),
+        'is_open': np.random.choice([True, False], 20, p=[0.9, 0.1]),
+        'category': np.random.choice(['restaurant', 'cafe', 'retail'], 20)
+    })
+    
+    # Test feature engineering
+    engineer = FeatureEngineer()
+    
+    env_featured, business_featured = engineer.create_all_features(env_data, business_data)
+    
+    print(f"Environmental features: {env_featured.shape[1]} columns")
+    print(f"Business features: {business_featured.shape[1]} columns")
+    print(f"Environmental comfort range: {env_featured['environmental_comfort_index'].min():.3f} - {env_featured['environmental_comfort_index'].max():.3f}")
+    print(f"Business success range: {business_featured['business_success_score'].min():.3f} - {business_featured['business_success_score'].max():.3f}")
+    
+    return engineer, env_featured, business_featured
+
+
+

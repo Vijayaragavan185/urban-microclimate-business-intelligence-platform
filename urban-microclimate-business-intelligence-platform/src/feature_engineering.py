@@ -170,3 +170,36 @@ class FeatureEngineer:
         logger.info("Geospatial features created")
         return df_featured
     
+    def create_interaction_features(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Create interaction features between key variables."""
+        df_featured = df.copy()
+        
+        # Environmental interactions
+        if 'temperature_celsius' in df.columns and 'humidity_percent' in df.columns:
+            # Heat index approximation
+            df_featured['heat_index'] = (
+                df_featured['temperature_celsius'] + 
+                df_featured['humidity_percent'] * 0.01 * df_featured['temperature_celsius']
+            )
+        
+        if 'air_quality_index' in df.columns and 'wind_speed_ms' in df.columns:
+            # Pollution dispersion factor
+            df_featured['pollution_dispersion'] = (
+                df_featured['air_quality_index'] / (df_featured['wind_speed_ms'] + 0.1)
+            )
+        
+        # Business-environment interactions
+        if 'environmental_comfort_index' in df.columns and 'business_success_score' in df.columns:
+            df_featured['comfort_success_interaction'] = (
+                df_featured['environmental_comfort_index'] * df_featured['business_success_score']
+            )
+        
+        # Rating-reviews interaction
+        if 'rating' in df.columns and 'review_count' in df.columns:
+            df_featured['rating_volume_score'] = (
+                df_featured['rating'] * np.log1p(df_featured['review_count'])
+            )
+        
+        logger.info("Interaction features created")
+        return df_featured
+    

@@ -231,4 +231,88 @@ class FeatureEngineer:
         
         logger.info(f"Aggregated features created for {len(group_cols)} groups and {len(agg_cols)} variables")
         return df_featured
+    def create_ranking_features(self, df: pd.DataFrame, rank_cols: list) -> pd.DataFrame:
+        """Create ranking and percentile features."""
+        df_featured = df.copy()
+        
+        for col in rank_cols:
+            if col not in df.columns:
+                continue
+            
+            # Rank (1 = highest value)
+            df_featured[f'{col}_rank'] = df_featured[col].rank(ascending=False, method='dense')
+            
+            # Percentile rank (0-1, 1 = highest)
+            df_featured[f'{col}_percentile'] = df_featured[col].rank(pct=True)
+            
+            # Quartile assignment
+            df_featured[f'{col}_quartile'] = pd.qcut(
+                df_featured[col], q=4, labels=['Q1', 'Q2', 'Q3', 'Q4'], duplicates='drop'
+            )
+            
+            # Z-score normalization
+            df_featured[f'{col}_zscore'] = (
+                (df_featured[col] - df_featured[col].mean()) / df_featured[col].std()
+            )
+        
+        logger.info(f"Ranking features created for {len(rank_cols)} variables")
+        return df_featured
     
+    def encode_categorical_features(self, df: pd.DataFrame, categorical_cols: list, 
+                                  encoding_type: str = 'onehot') -> pd.DataFrame:
+        """Encode categorical variables for machine learning."""
+        df_featured = df.copy()
+        
+        for col in categorical_cols:
+            if col not in df.columns:
+                continue
+            
+            if encoding_type == 'onehot':
+                # One-hot encoding
+                dummies = pd.get_dummies(df_featured[col], prefix=col, drop_first=True)
+                df_featured = pd.concat([df_featured, dummies], axis=1)
+                
+            elif encoding_type == 'label':
+                # Label encoding
+                if col not in self.encoders:
+                    self.encoders[col] = LabelEncoder()
+                    df_featured[f'{col}_encoded'] = self.encoders[col].fit_transform(df_featured[col].astype(str))
+                else:
+                    df_featured[f'{col}_encoded'] = self.encoders[col].transform(df_featured[col].astype(str))
+            
+            elif encoding_type == 'target':
+                # Target encoding (for supervised learning)
+                if 'business_success_score' in df.columns:
+                    target_means = df_featured.groupby(col)['business_success_score'].mean()
+                    df_featured[f'{col}_target_encoded'] = df_featured[col].map(target_means)
+        
+        logger.info(f"Categorical encoding completed for {len(categorical_cols)} variables")
+        return df_featured
+    
+    def scale_numerical_features(self, df: pd.DataFrame, numerical_cols: list, 
+                                scaling_type: str = 'standard') -> pd.DataFrame:
+        """Scale numerical features for machine learning."""
+        df_featured = df.copy()
+        
+        for col in numerical_cols:
+            if col not in df.columns:
+                continue
+            
+            if scaling_type == 'standard':
+                if col not in self.scalers:
+                    self.scalers[col] = StandardScaler()
+                    df_featured[f'{col}_scaled'] = self.scalers[col].fit_transform(df_featured[[col]])
+                else:
+                    df_featured[f'{col}_scaled'] = self.scalers[col].transform(df_featured[[col]])
+            
+            elif scaling_type == 'minmax':
+                if col not in self.scalers:
+                    self.scalers[col] = MinMaxScaler()
+                    df_featured[f'{col}_normalized'] = self.scalers[col].fit_transform(df_featured[[col]])
+                else:
+                    df_featured[f'{col}_normalized'] = self.scalers[col].transform(df_featured[[col]])
+        
+        logger.info(f"Numerical scaling completed for {len(numerical_cols)} variables")
+        return df_featured
+    
+

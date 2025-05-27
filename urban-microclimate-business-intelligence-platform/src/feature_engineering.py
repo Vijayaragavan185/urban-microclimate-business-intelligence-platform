@@ -60,3 +60,46 @@ class FeatureEngineer:
         
         logger.info("Environmental comfort index created")
         return df_featured
+    
+    def create_business_success_score(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Create comprehensive business success score."""
+        df_featured = df.copy()
+        
+        def calculate_success_score(row):
+            # Rating component (normalized 1-5 to 0-1)
+            rating_score = (row.get('rating', 3.5) - 1) / 4
+            
+            # Review volume component (log-normalized)
+            reviews = row.get('review_count', 10)
+            review_score = np.log1p(reviews) / np.log1p(300)  # Normalize to 300 reviews
+            
+            # Operational status
+            operational_score = 1.0 if row.get('is_open', True) else 0.3
+            
+            # Price positioning (mid-range often optimal)
+            price_level = row.get('price_level', 2)
+            price_score = 1.0 - abs(price_level - 2.5) / 2.5
+            
+            # Composite score
+            success_score = (
+                rating_score * 0.4 +
+                review_score * 0.3 +
+                operational_score * 0.2 +
+                price_score * 0.1
+            )
+            
+            return round(min(1.0, success_score), 3)
+        
+        df_featured['business_success_score'] = df.apply(calculate_success_score, axis=1)
+        
+        # Create performance categories
+        df_featured['performance_category'] = pd.cut(
+            df_featured['business_success_score'],
+            bins=[0, 0.3, 0.6, 0.8, 1.0],
+            labels=['Poor', 'Average', 'Good', 'Excellent'],
+            include_lowest=True
+        )
+        
+        logger.info("Business success score created")
+        return df_featured
+    

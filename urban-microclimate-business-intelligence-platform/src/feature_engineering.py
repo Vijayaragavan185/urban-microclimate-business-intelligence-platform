@@ -420,4 +420,7 @@ def test_feature_engineering():
     return engineer, env_featured, business_featured
 
 
+if __name__ == "__main__":
+    engineer, env_df, biz_df = test_feature_engineering()
+    print("✅ Feature engineering module completed successfully!")
 

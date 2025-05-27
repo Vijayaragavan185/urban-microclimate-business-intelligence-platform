@@ -203,3 +203,32 @@ class FeatureEngineer:
         logger.info("Interaction features created")
         return df_featured
     
+    def create_aggregated_features(self, df: pd.DataFrame, group_cols: list, agg_cols: list) -> pd.DataFrame:
+        """Create aggregated features based on grouping variables."""
+        df_featured = df.copy()
+        
+        for group_col in group_cols:
+            if group_col not in df.columns:
+                continue
+                
+            for agg_col in agg_cols:
+                if agg_col not in df.columns:
+                    continue
+                
+                # Calculate group statistics
+                group_stats = df.groupby(group_col)[agg_col].agg(['mean', 'std', 'count'])
+                
+                # Merge back to original dataframe
+                df_featured[f'{group_col}_{agg_col}_mean'] = df_featured[group_col].map(group_stats['mean'])
+                df_featured[f'{group_col}_{agg_col}_std'] = df_featured[group_col].map(group_stats['std'])
+                df_featured[f'{group_col}_{agg_col}_count'] = df_featured[group_col].map(group_stats['count'])
+                
+                # Calculate relative position within group
+                df_featured[f'{group_col}_{agg_col}_relative'] = (
+                    (df_featured[agg_col] - df_featured[f'{group_col}_{agg_col}_mean']) /
+                    (df_featured[f'{group_col}_{agg_col}_std'] + 1e-8)
+                )
+        
+        logger.info(f"Aggregated features created for {len(group_cols)} groups and {len(agg_cols)} variables")
+        return df_featured
+    

@@ -103,3 +103,41 @@ class FeatureEngineer:
         logger.info("Business success score created")
         return df_featured
     
+    def create_temporal_features(self, df: pd.DataFrame, timestamp_col: str = 'timestamp') -> pd.DataFrame:
+        """Extract temporal features from timestamp data."""
+        if timestamp_col not in df.columns:
+            logger.warning(f"Timestamp column {timestamp_col} not found")
+            return df
+        
+        df_featured = df.copy()
+        
+        # Convert to datetime if not already
+        df_featured[timestamp_col] = pd.to_datetime(df_featured[timestamp_col])
+        
+        # Extract temporal components
+        df_featured['hour'] = df_featured[timestamp_col].dt.hour
+        df_featured['day_of_week'] = df_featured[timestamp_col].dt.dayofweek
+        df_featured['month'] = df_featured[timestamp_col].dt.month
+        df_featured['quarter'] = df_featured[timestamp_col].dt.quarter
+        df_featured['is_weekend'] = (df_featured['day_of_week'] >= 5).astype(int)
+        
+        # Business hours indicator
+        df_featured['is_business_hours'] = (
+            (df_featured['hour'] >= 9) & (df_featured['hour'] <= 17) & 
+            (df_featured['day_of_week'] < 5)
+        ).astype(int)
+        
+        # Rush hour indicators
+        df_featured['is_morning_rush'] = (
+            (df_featured['hour'] >= 7) & (df_featured['hour'] <= 9) & 
+            (df_featured['day_of_week'] < 5)
+        ).astype(int)
+        
+        df_featured['is_evening_rush'] = (
+            (df_featured['hour'] >= 17) & (df_featured['hour'] <= 19) & 
+            (df_featured['day_of_week'] < 5)
+        ).astype(int)
+        
+        logger.info("Temporal features created")
+        return df_featured
+    

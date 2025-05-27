@@ -346,5 +346,39 @@ class FeatureEngineer:
         
         logger.info(f"PCA features created: {pca.n_components_} components explaining {pca.explained_variance_ratio_.sum():.3f} of variance")
         return df_featured
-    
+
+    def create_all_features(self, env_df: pd.DataFrame, business_df: pd.DataFrame) -> tuple:
+        """Create all engineered features for both datasets."""
+        logger.info("Creating comprehensive feature set")
+        
+        # Environmental features
+        env_featured = self.create_environmental_comfort_index(env_df)
+        
+        if 'timestamp' in env_df.columns:
+            env_featured = self.create_temporal_features(env_featured)
+        
+        env_featured = self.create_geospatial_features(env_featured)
+        env_featured = self.create_interaction_features(env_featured)
+        
+        # Business features
+        business_featured = self.create_business_success_score(business_df)
+        business_featured = self.create_geospatial_features(business_featured)
+        
+        if 'category' in business_df.columns:
+            business_featured = self.create_aggregated_features(
+                business_featured, 
+                ['category'], 
+                ['rating', 'review_count']
+            )
+        
+        business_featured = self.create_ranking_features(
+            business_featured, 
+            ['rating', 'review_count', 'business_success_score']
+        )
+        
+        business_featured = self.create_interaction_features(business_featured)
+        
+        logger.info("All features created successfully")
+        return env_featured, business_featured
+
 

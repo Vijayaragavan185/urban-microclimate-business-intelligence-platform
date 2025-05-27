@@ -141,3 +141,32 @@ class FeatureEngineer:
         logger.info("Temporal features created")
         return df_featured
     
+    def create_geospatial_features(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Create features based on geographic location."""
+        df_featured = df.copy()
+        
+        # Distance from city center (using NYC as example)
+        city_center_lat, city_center_lon = 40.7128, -74.0060
+        
+        df_featured['distance_from_center'] = np.sqrt(
+            (df_featured['latitude'] - city_center_lat) ** 2 +
+            (df_featured['longitude'] - city_center_lon) ** 2
+        ) * 111000  # Convert to approximate meters
+        
+        # Grid-based location encoding
+        lat_bins = pd.cut(df_featured['latitude'], bins=10, labels=False)
+        lon_bins = pd.cut(df_featured['longitude'], bins=10, labels=False)
+        df_featured['location_grid'] = lat_bins * 10 + lon_bins
+        
+        # Quadrant classification
+        median_lat = df_featured['latitude'].median()
+        median_lon = df_featured['longitude'].median()
+        
+        df_featured['quadrant'] = (
+            (df_featured['latitude'] >= median_lat).astype(int) * 2 +
+            (df_featured['longitude'] >= median_lon).astype(int)
+        )
+        
+        logger.info("Geospatial features created")
+        return df_featured
+    

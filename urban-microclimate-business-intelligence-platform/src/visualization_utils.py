@@ -458,3 +458,61 @@ class VisualizationEngine:
         return saved_files
 
 
+def test_visualization_engine():
+    """Test visualization engine with sample data."""
+    np.random.seed(42)
+    
+    # Sample environmental data
+    env_data = pd.DataFrame({
+        'latitude': 40.75 + np.random.normal(0, 0.01, 10),
+        'longitude': -74.0 + np.random.normal(0, 0.01, 10),
+        'street_name': [f'Street_{i}' for i in range(10)],
+        'temperature_celsius': 20 + np.random.normal(0, 5, 10),
+        'humidity_percent': 60 + np.random.normal(0, 15, 10),
+        'air_quality_index': 50 + np.random.normal(0, 20, 10),
+        'wind_speed_ms': 2 + np.random.exponential(1, 10),
+        'comfort_index': np.random.uniform(0.3, 0.9, 10)
+    })
+    
+    # Sample business data  
+    business_data = pd.DataFrame({
+        'business_name': [f'Business_{i}' for i in range(20)],
+        'business_category': np.random.choice(['restaurant', 'cafe', 'retail'], 20),
+        'business_rating': 3.5 + np.random.normal(0, 0.8, 20),
+        'business_reviews': np.random.randint(10, 200, 20),
+        'business_success_score': np.random.uniform(0.2, 0.9, 20),
+        'business_price_level': np.random.randint(1, 5, 20)
+    })
+    
+    # Sample merged data
+    merged_data = pd.DataFrame({
+        'latitude': 40.75 + np.random.normal(0, 0.01, 15),
+        'longitude': -74.0 + np.random.normal(0, 0.01, 15),
+        'business_name': [f'Business_{i}' for i in range(15)],
+        'business_category': np.random.choice(['restaurant', 'cafe', 'retail'], 15),
+        'business_rating': 3.5 + np.random.normal(0, 0.8, 15),
+        'business_reviews': np.random.randint(10, 200, 15),
+        'business_success_score': np.random.uniform(0.2, 0.9, 15),
+        'env_comfort_index': np.random.uniform(0.3, 0.9, 15),
+        'env_temperature': 20 + np.random.normal(0, 5, 15),
+        'env_air_quality': 50 + np.random.normal(0, 20, 15)
+    })
+    
+    # Test visualization engine
+    viz_engine = VisualizationEngine()
+    
+    # Create sample analysis results
+    analysis_results = {
+        'correlation_matrix': merged_data[['business_success_score', 'env_comfort_index', 
+                                         'business_rating', 'env_temperature']].corr()
+    }
+    
+    # Create comprehensive report
+    visualizations = viz_engine.create_comprehensive_report(
+        env_data, business_data, merged_data, analysis_results
+    )
+    
+    print(f"✅ Created {len(visualizations)} visualizations")
+    return viz_engine, visualizations
+
+

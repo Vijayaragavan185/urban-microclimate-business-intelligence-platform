@@ -361,3 +361,39 @@ class UrbanMicroClimateAnalysisPlatform:
             logger.error(f"Visualization failed: {e}")
             raise
     
+    def _generate_final_report(self):
+        """Generate comprehensive final report and executive summary."""
+        logger.info("Generating final comprehensive report...")
+        
+        try:
+            # Compile executive summary
+            executive_summary = self._create_executive_summary()
+            
+            # Create comprehensive report
+            full_report = self._create_comprehensive_report()
+            
+            # Save reports
+            with open('results/reports/executive_summary.json', 'w') as f:
+                json.dump(executive_summary, f, indent=2, default=str)
+            
+            with open('results/reports/comprehensive_report.json', 'w') as f:
+                json.dump(full_report, f, indent=2, default=str)
+            
+            # Create readable markdown report
+            markdown_report = self._create_markdown_report(executive_summary, full_report)
+            with open('results/reports/analysis_report.md', 'w') as f:
+                f.write(markdown_report)
+            
+            # Store final results
+            self.results['final_report'] = {
+                'executive_summary': executive_summary,
+                'comprehensive_report': full_report,
+                'analysis_completion_time': datetime.now().isoformat()
+            }
+            
+            logger.info("Final report generation completed")
+            
+        except Exception as e:
+            logger.error(f"Report generation failed: {e}")
+            raise
+    

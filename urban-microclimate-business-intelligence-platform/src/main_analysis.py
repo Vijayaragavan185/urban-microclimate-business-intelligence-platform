@@ -163,3 +163,41 @@ class UrbanMicroClimateAnalysisPlatform:
             logger.error(f"Data collection failed: {e}")
             raise
     
+    def _execute_feature_engineering(self):
+        """Execute advanced feature engineering phase."""
+        logger.info("Executing feature engineering pipeline...")
+        
+        try:
+            # Apply comprehensive feature engineering
+            env_featured, business_featured = self.feature_engineer.create_all_features(
+                self.data['environmental_raw'],
+                self.data['business_raw']
+            )
+            
+            # Store engineered data
+            self.data['environmental_featured'] = env_featured
+            self.data['business_featured'] = business_featured
+            
+            # Save engineered data
+            env_featured.to_csv('data/processed/environmental_featured.csv', index=False)
+            business_featured.to_csv('data/processed/business_featured.csv', index=False)
+            
+            # Log feature engineering results
+            env_new_features = len(env_featured.columns) - len(self.data['environmental_raw'].columns)
+            business_new_features = len(business_featured.columns) - len(self.data['business_raw'].columns)
+            
+            logger.info(f"Environmental features created: {env_new_features} new features")
+            logger.info(f"Business features created: {business_new_features} new features")
+            
+            # Store feature engineering statistics
+            self.results['feature_engineering'] = {
+                'environmental_features_added': env_new_features,
+                'business_features_added': business_new_features,
+                'total_environmental_features': len(env_featured.columns),
+                'total_business_features': len(business_featured.columns)
+            }
+            
+        except Exception as e:
+            logger.error(f"Feature engineering failed: {e}")
+            raise
+    

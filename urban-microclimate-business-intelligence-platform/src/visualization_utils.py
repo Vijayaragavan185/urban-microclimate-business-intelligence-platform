@@ -516,3 +516,6 @@ def test_visualization_engine():
     return viz_engine, visualizations
 
 
+if __name__ == "__main__":
+    engine, vizs = test_visualization_engine()
+    print("✅ Visualization engine module completed successfully!")

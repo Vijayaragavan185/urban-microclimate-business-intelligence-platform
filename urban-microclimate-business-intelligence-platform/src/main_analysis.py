@@ -201,3 +201,49 @@ class UrbanMicroClimateAnalysisPlatform:
             logger.error(f"Feature engineering failed: {e}")
             raise
     
+    def _execute_spatial_analysis(self):
+        """Execute geospatial analysis and integration."""
+        logger.info("Executing spatial analysis pipeline...")
+        
+        try:
+            # Spatial join of environmental and business data
+            joined_data = self.spatial_processor.spatial_join(
+                self.data['business_featured'],
+                self.data['environmental_featured'],
+                max_distance=self.config['spatial_join_distance']
+            )
+            
+            # Store joined data
+            self.data['spatially_joined'] = joined_data
+            joined_data.to_csv('data/processed/spatially_joined.csv', index=False)
+            
+            # Create spatial clusters
+            combined_points = pd.concat([
+                self.data['environmental_featured'][['latitude', 'longitude']],
+                self.data['business_featured'][['latitude', 'longitude']]
+            ], ignore_index=True)
+            
+            clustered_points, cluster_summary = self.spatial_processor.create_spatial_clusters(
+                combined_points,
+                cluster_distance=self.config['cluster_distance']
+            )
+            
+            # Store spatial analysis results
+            self.data['spatial_clusters'] = clustered_points
+            self.data['cluster_summary'] = cluster_summary
+            
+            logger.info(f"Spatial join completed: {len(joined_data)} business-environment pairs")
+            logger.info(f"Spatial clustering: {clustered_points['cluster_id'].nunique()} clusters identified")
+            
+            # Store spatial analysis statistics
+            self.results['spatial_analysis'] = {
+                'joined_pairs': len(joined_data),
+                'spatial_join_distance': self.config['spatial_join_distance'],
+                'clusters_identified': int(clustered_points['cluster_id'].nunique()),
+                'cluster_distance': self.config['cluster_distance']
+            }
+            
+        except Exception as e:
+            logger.error(f"Spatial analysis failed: {e}")
+            raise
+    

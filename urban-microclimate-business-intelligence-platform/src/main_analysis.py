@@ -247,3 +247,49 @@ class UrbanMicroClimateAnalysisPlatform:
             logger.error(f"Spatial analysis failed: {e}")
             raise
     
+    def _execute_business_analysis(self):
+        """Execute comprehensive business performance analysis."""
+        logger.info("Executing business intelligence analysis...")
+        
+        try:
+            # Load data into business analyzer
+            self.business_analyzer.env_data = self.data['environmental_featured']
+            self.business_analyzer.business_data = self.data['business_featured']
+            
+            # Use spatially joined data for analysis
+            self.business_analyzer.merged_data = self._prepare_merged_data_for_analysis()
+            
+            # Run comprehensive analysis
+            correlation_matrix = self.business_analyzer.calculate_correlation_matrix()
+            statistical_tests = self.business_analyzer.perform_statistical_significance_tests()
+            cluster_analysis = self.business_analyzer.perform_cluster_analysis()
+            business_insights = self.business_analyzer.generate_business_insights()
+            
+            # Store analysis results
+            self.results['business_analysis'] = {
+                'correlation_matrix': correlation_matrix,
+                'statistical_tests': statistical_tests,
+                'cluster_analysis': cluster_analysis,
+                'business_insights': business_insights
+            }
+            
+            # Save analysis results
+            correlation_matrix.to_csv('results/data/correlation_matrix.csv')
+            
+            with open('results/data/statistical_tests.json', 'w') as f:
+                # Convert numpy types to native Python types for JSON serialization
+                json_safe_tests = {}
+                for key, value in statistical_tests.items():
+                    json_safe_tests[key] = {k: float(v) if isinstance(v, (np.floating, np.integer)) else v 
+                                          for k, v in value.items()}
+                json.dump(json_safe_tests, f, indent=2)
+            
+            with open('results/data/business_insights.json', 'w') as f:
+                json.dump(business_insights, f, indent=2, default=str)
+            
+            logger.info("Business analysis completed successfully")
+            
+        except Exception as e:
+            logger.error(f"Business analysis failed: {e}")
+            raise
+    

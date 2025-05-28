@@ -389,3 +389,36 @@ class VisualizationEngine:
         logger.info(f"Geospatial map created with {len(merged_data)} points")
         return m
     
+    def create_comprehensive_report(self, env_data: pd.DataFrame, business_data: pd.DataFrame, 
+                                  merged_data: pd.DataFrame, analysis_results: Dict) -> Dict:
+        """Create comprehensive visualization report."""
+        logger.info("Creating comprehensive visualization report")
+        
+        visualizations = {}
+        
+        try:
+            # Environmental dashboard
+            visualizations['environmental_dashboard'] = self.create_environmental_dashboard(env_data)
+            
+            # Business dashboard  
+            visualizations['business_dashboard'] = self.create_business_performance_dashboard(business_data)
+            
+            # Correlation analysis
+            if 'correlation_matrix' in analysis_results:
+                visualizations['correlation_heatmap'] = self.create_correlation_heatmap(
+                    analysis_results['correlation_matrix'],
+                    "Environmental-Business Correlation Matrix"
+                )
+            
+            # Interactive plots
+            visualizations['interactive_correlation'] = self.create_interactive_correlation_plot(merged_data)
+            
+            # Geospatial map
+            visualizations['geospatial_map'] = self.create_geospatial_map(merged_data)
+            
+            logger.info(f"Comprehensive report created with {len(visualizations)} visualizations")
+            
+        except Exception as e:
+            logger.error(f"Error creating visualizations: {e}")
+        
+        return visualizations

@@ -34,6 +34,7 @@ This groundbreaking project reveals how **micro-environmental factors at 50-mete
 ---
 
 ## 📊 Project Architecture
+<pre>
 Urban Micro-Climate Business Intelligence Platform
 ├── 🌡️ Environmental Data Layer
 │ ├── Weather API Integration (Temperature, Humidity, Wind)
@@ -60,6 +61,7 @@ Urban Micro-Climate Business Intelligence Platform
 ├── Geospatial Mapping (Folium, heat maps, clustering)
 ├── Executive Summaries (Automated report generation)
 └── Professional Visualizations (Publication-ready graphics)
+</pre>
 
 
 ## 🛠️ Technologies & Skills Demonstrated
@@ -193,7 +195,7 @@ This project demonstrates expertise across multiple high-demand areas:
 ## 📞 Professional Contact
 
 **Project Developer**: Vijayaragavan S  
-**LinkedIn**: [Your LinkedIn Profile]  
+**LinkedIn**: https://www.linkedin.com/in/vijayaragavan185/ 
 **Email**: svijayaragavan185@gmail.com
 
 **Technical Expertise**: Advanced Data Science, Geospatial Analytics, Business Intelligence  
@@ -204,4 +206,10 @@ This project demonstrates expertise across multiple high-demand areas:
 
 ## 📝 License & Citation
 
+MIT License - Open Source Research Project
+
+Citation:
+Vijayaragavan S. (2025). Urban Micro-Climate Business Intelligence Platform:
+Street-Level Environmental Analysis for Commercial Success Prediction.
+GitHub Repository: https://github.com/yourusername/urban-microclimate-business-intelligence-platform
 

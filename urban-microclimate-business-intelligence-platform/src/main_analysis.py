@@ -293,3 +293,71 @@ class UrbanMicroClimateAnalysisPlatform:
             logger.error(f"Business analysis failed: {e}")
             raise
     
+    def _prepare_merged_data_for_analysis(self) -> pd.DataFrame:
+        """Prepare merged dataset for business analysis."""
+        if 'spatially_joined' in self.data:
+            # Use spatially joined data
+            merged_data = self.data['spatially_joined'].copy()
+            
+            # Rename columns to match expected format
+            column_mapping = {
+                'left_rating': 'business_rating',
+                'left_review_count': 'business_reviews', 
+                'left_success_score': 'business_success_score',
+                'left_category': 'business_category',
+                'left_name': 'business_name',
+                'left_price_level': 'business_price_level',
+                'left_is_open': 'business_is_open',
+                'right_temperature_celsius': 'env_temperature',
+                'right_humidity_percent': 'env_humidity',
+                'right_air_quality_index': 'env_air_quality',
+                'right_wind_speed_ms': 'env_wind_speed',
+                'right_comfort_index': 'env_comfort_index',
+                'right_quality_score': 'env_quality_score'
+            }
+            
+            # Rename columns that exist
+            for old_col, new_col in column_mapping.items():
+                if old_col in merged_data.columns:
+                    merged_data[new_col] = merged_data[old_col]
+            
+            return merged_data
+        else:
+            # Fallback: create simple merged dataset
+            logger.warning("Using fallback merge for business analysis")
+            return pd.DataFrame()
+    
+    def _execute_visualization(self):
+        """Execute comprehensive visualization generation."""
+        logger.info("Executing visualization pipeline...")
+        
+        try:
+            # Prepare data for visualization
+            env_data = self.data['environmental_featured']
+            business_data = self.data['business_featured']
+            merged_data = self._prepare_merged_data_for_analysis()
+            
+            # Create comprehensive visualizations
+            visualizations = self.viz_engine.create_comprehensive_report(
+                env_data,
+                business_data,
+                merged_data,
+                self.results.get('business_analysis', {})
+            )
+            
+            # Save all visualizations
+            saved_files = self.viz_engine.save_all_visualizations(visualizations)
+            
+            # Store visualization results
+            self.results['visualizations'] = {
+                'created_count': len(visualizations),
+                'saved_files': saved_files,
+                'visualization_types': list(visualizations.keys())
+            }
+            
+            logger.info(f"Visualization completed: {len(visualizations)} visualizations created")
+            
+        except Exception as e:
+            logger.error(f"Visualization failed: {e}")
+            raise
+    

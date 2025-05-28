@@ -315,3 +315,77 @@ class VisualizationEngine:
         
         logger.info("Interactive correlation plot created")
         return fig
+
+    
+    def create_geospatial_map(self, merged_data: pd.DataFrame) -> folium.Map:
+        """Create interactive geospatial map with business and environmental data."""
+        if 'latitude' not in merged_data.columns or 'longitude' not in merged_data.columns:
+            logger.warning("Geographic coordinates not found")
+            return folium.Map()
+        
+        # Calculate map center
+        center_lat = merged_data['latitude'].mean()
+        center_lon = merged_data['longitude'].mean()
+        
+        # Create base map
+        m = folium.Map(
+            location=[center_lat, center_lon],
+            zoom_start=12,
+            tiles='OpenStreetMap'
+        )
+        
+        # Add business markers
+        for idx, row in merged_data.iterrows():
+            # Determine marker color based on success score
+            if 'business_success_score' in row:
+                success = row['business_success_score']
+                if success >= 0.7:
+                    color = 'green'
+                elif success >= 0.5:
+                    color = 'orange'
+                else:
+                    color = 'red'
+            else:
+                color = 'blue'
+            
+            # Create popup text
+            popup_text = f"""
+            <b>{row.get('business_name', 'Business')}</b><br>
+            Category: {row.get('business_category', 'Unknown')}<br>
+            Rating: {row.get('business_rating', 'N/A')}<br>
+            Success Score: {row.get('business_success_score', 'N/A'):.3f}<br>
+            Environmental Comfort: {row.get('env_comfort_index', 'N/A'):.3f}<br>
+            Temperature: {row.get('env_temperature', 'N/A')}°C<br>
+            Air Quality: {row.get('env_air_quality', 'N/A')} AQI
+            """
+            
+            folium.Marker(
+                location=[row['latitude'], row['longitude']],
+                popup=folium.Popup(popup_text, max_width=300),
+                tooltip=row.get('business_name', f'Business {idx}'),
+                icon=folium.Icon(color=color, icon='info-sign')
+            ).add_to(m)
+        
+        # Add heatmap layer for environmental comfort
+        if 'env_comfort_index' in merged_data.columns:
+            heat_data = [
+                [row['latitude'], row['longitude'], row['env_comfort_index']]
+                for idx, row in merged_data.iterrows()
+                if pd.notna(row['env_comfort_index'])
+            ]
+            
+            if heat_data:
+                HeatMap(
+                    heat_data,
+                    name='Environmental Comfort Heatmap',
+                    radius=20,
+                    blur=15,
+                    max_zoom=1
+                ).add_to(m)
+        
+        # Add layer control
+        folium.LayerControl().add_to(m)
+        
+        logger.info(f"Geospatial map created with {len(merged_data)} points")
+        return m
+    

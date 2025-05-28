@@ -128,3 +128,38 @@ class UrbanMicroClimateAnalysisPlatform:
             logger.error(f"Analysis pipeline failed: {e}")
             raise
     
+    def _execute_data_collection(self):
+        """Execute comprehensive data collection phase."""
+        logger.info("Executing data collection pipeline...")
+        
+        try:
+            # Run main collection pipeline from data_collectors module
+            env_data, business_data = main_collection_pipeline()
+            
+            # Store in class data structure
+            self.data['environmental_raw'] = env_data
+            self.data['business_raw'] = business_data
+            
+            # Save raw data
+            env_data.to_csv('data/processed/environmental_raw.csv', index=False)
+            business_data.to_csv('data/processed/business_raw.csv', index=False)
+            
+            # Log collection results
+            logger.info(f"Environmental data collected: {len(env_data)} measurements")
+            logger.info(f"Business data collected: {len(business_data)} profiles")
+            
+            # Store collection statistics
+            self.results['data_collection'] = {
+                'environmental_points': len(env_data),
+                'business_profiles': len(business_data),
+                'collection_timestamp': self.analysis_timestamp.isoformat(),
+                'geographic_coverage': {
+                    'lat_range': [env_data['latitude'].min(), env_data['latitude'].max()],
+                    'lon_range': [env_data['longitude'].min(), env_data['longitude'].max()]
+                }
+            }
+            
+        except Exception as e:
+            logger.error(f"Data collection failed: {e}")
+            raise
+    

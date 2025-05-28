@@ -247,6 +247,9 @@ class UrbanMicroClimateAnalysisPlatform:
             logger.error(f"Spatial analysis failed: {e}")
             raise
     
+# Replace the entire _execute_business_analysis method in main_analysis.py
+# Replace the entire _execute_business_analysis method in main_analysis.py with this:
+
     def _execute_business_analysis(self):
         """Execute comprehensive business performance analysis."""
         logger.info("Executing business intelligence analysis...")
@@ -276,23 +279,78 @@ class UrbanMicroClimateAnalysisPlatform:
             # Save analysis results
             correlation_matrix.to_csv('results/data/correlation_matrix.csv')
             
-            with open('results/data/statistical_tests.json', 'w') as f:
-                # Convert numpy types to native Python types for JSON serialization
-                json_safe_tests = {}
-                for key, value in statistical_tests.items():
-                    json_safe_tests[key] = {k: float(v) if isinstance(v, (np.floating, np.integer)) else v 
-                                          for k, v in value.items()}
-                json.dump(json_safe_tests, f, indent=2)
+            # ROBUST JSON SERIALIZATION FUNCTION
+            def deep_convert_for_json(obj):
+                """Recursively convert all problematic types for JSON serialization."""
+                import numpy as np
+                import pandas as pd
+                
+                if isinstance(obj, dict):
+                    return {str(k): deep_convert_for_json(v) for k, v in obj.items()}
+                elif isinstance(obj, (list, tuple)):
+                    return [deep_convert_for_json(item) for item in obj]
+                elif isinstance(obj, bool):
+                    return int(obj)  # True -> 1, False -> 0
+                elif isinstance(obj, (np.bool_, np.bool8)):
+                    return int(obj)
+                elif isinstance(obj, (np.integer, np.int64, np.int32)):
+                    return int(obj)
+                elif isinstance(obj, (np.floating, np.float64, np.float32)):
+                    return float(obj)
+                elif isinstance(obj, np.ndarray):
+                    return obj.tolist()
+                elif pd.isna(obj):
+                    return None
+                elif hasattr(obj, 'item'):  # Handle numpy scalars
+                    return obj.item()
+                else:
+                    return obj
             
-            with open('results/data/business_insights.json', 'w') as f:
-                json.dump(business_insights, f, indent=2, default=str)
+            # Convert and save statistical tests
+            logger.info("Saving statistical tests...")
+            try:
+                safe_statistical_tests = deep_convert_for_json(statistical_tests)
+                with open('results/data/statistical_tests.json', 'w') as f:
+                    json.dump(safe_statistical_tests, f, indent=2)
+                logger.info("Statistical tests saved successfully")
+            except Exception as e:
+                logger.warning(f"Could not save statistical tests as JSON: {e}")
+                # Save as text fallback
+                with open('results/data/statistical_tests.txt', 'w') as f:
+                    f.write(str(statistical_tests))
+            
+            # Convert and save business insights
+            logger.info("Saving business insights...")
+            try:
+                safe_business_insights = deep_convert_for_json(business_insights)
+                with open('results/data/business_insights.json', 'w') as f:
+                    json.dump(safe_business_insights, f, indent=2)
+                logger.info("Business insights saved successfully")
+            except Exception as e:
+                logger.warning(f"Could not save business insights as JSON: {e}")
+                # Save as text fallback
+                with open('results/data/business_insights.txt', 'w') as f:
+                    f.write(str(business_insights))
+            
+            # Convert and save cluster analysis
+            logger.info("Saving cluster analysis...")
+            try:
+                safe_cluster_analysis = deep_convert_for_json(cluster_analysis)
+                with open('results/data/cluster_analysis.json', 'w') as f:
+                    json.dump(safe_cluster_analysis, f, indent=2)
+                logger.info("Cluster analysis saved successfully")
+            except Exception as e:
+                logger.warning(f"Could not save cluster analysis as JSON: {e}")
+                # Save as text fallback
+                with open('results/data/cluster_analysis.txt', 'w') as f:
+                    f.write(str(cluster_analysis))
             
             logger.info("Business analysis completed successfully")
             
         except Exception as e:
             logger.error(f"Business analysis failed: {e}")
             raise
-    
+            
     def _prepare_merged_data_for_analysis(self) -> pd.DataFrame:
         """Prepare merged dataset for business analysis."""
         if 'spatially_joined' in self.data:

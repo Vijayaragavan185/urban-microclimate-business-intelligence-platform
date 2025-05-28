@@ -1,0 +1,1 @@
+{'comfort_vs_success': {'correlation': np.float64(0.2871), 'p_value': np.float64(0.1738), 'significant': np.False_, 'sample_size': 24, 'interpretation': 'Not statistically significant'}, 'air_quality_vs_rating': {'correlation': np.float64(0.0362), 'p_value': np.float64(0.8665), 'significant': np.False_, 'sample_size': 24, 'interpretation': 'Not statistically significant'}}

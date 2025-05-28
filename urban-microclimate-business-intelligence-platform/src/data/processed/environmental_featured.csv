@@ -1,0 +1,6 @@
+timestamp,latitude,longitude,street_name,temperature_celsius,humidity_percent,wind_speed_ms,air_quality_index,data_source,comfort_index,environmental_comfort_index,comfort_category,hour,day_of_week,month,quarter,is_weekend,is_business_hours,is_morning_rush,is_evening_rush,distance_from_center,location_grid,quadrant,heat_index,pollution_dispersion
+2025-05-28 19:37:02.481675,40.7128,-74.006,Times Square Business District,11.8,54.2,1.4,73,multi_api_simulation,0.628,0.658,Good,19,2,5,2,0,0,0,1,0.0,6,0,18.195600000000002,48.666666666666664
+2025-05-28 19:37:02.582515,40.7589,-73.9851,Central Park Commercial Zone,22.7,50.3,0.8,63,multi_api_simulation,0.774,0.767,Good,19,2,5,2,0,0,0,1,5618.420455963907,68,3,34.1181,70.0
+2025-05-28 19:37:02.684416,40.7505,-73.9934,Broadway Theater District,23.0,66.8,0.9,52,multi_api_simulation,0.726,0.701,Good,19,2,5,2,0,0,0,1,4412.232547135611,57,3,38.364000000000004,52.0
+2025-05-28 19:37:02.785432,40.7282,-74.0776,Financial District,23.3,34.7,0.7,85,multi_api_simulation,0.653,0.643,Good,19,2,5,2,0,0,0,1,8129.353856242593,20,0,31.3851,106.25000000000001
+2025-05-28 19:37:02.886984,40.7831,-73.9712,Upper East Side Commercial,23.2,56.7,1.4,68,multi_api_simulation,0.745,0.737,Good,19,2,5,2,0,0,0,1,8707.049714455332,99,3,36.3544,45.333333333333336

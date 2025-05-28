@@ -1,0 +1,1 @@
+{'method': 'comfort_categorization', 'categories': {'Good': {'count': 24, 'avg_business_success': np.float64(0.7524583333333332), 'avg_business_rating': np.float64(4.0125)}}, 'total_points': 24}

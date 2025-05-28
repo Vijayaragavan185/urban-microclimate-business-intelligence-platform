@@ -1,0 +1,117 @@
+{
+  "methodology": {
+    "data_collection": "Multi-source environmental and business data integration",
+    "spatial_analysis": "Geospatial correlation using distance-based matching",
+    "statistical_analysis": "Correlation analysis with significance testing",
+    "visualization": "Interactive and static visualization suite"
+  },
+  "results_summary": {
+    "data_collection": {
+      "environmental_points": 5,
+      "business_profiles": 28,
+      "collection_timestamp": "2025-05-28T19:37:02.475098",
+      "geographic_coverage": {
+        "lat_range": [
+          40.7128,
+          40.7831
+        ],
+        "lon_range": [
+          -74.0776,
+          -73.9712
+        ]
+      }
+    },
+    "feature_engineering": {
+      "environmental_features_added": 15,
+      "business_features_added": 26,
+      "total_environmental_features": 25,
+      "total_business_features": 39
+    },
+    "spatial_analysis": {
+      "joined_pairs": 24,
+      "spatial_join_distance": 200,
+      "clusters_identified": 5,
+      "cluster_distance": 300
+    },
+    "business_analysis": {
+      "correlation_matrix": "                        env_temperature  ...  business_price_level\nenv_temperature                1.000000  ...              0.330584\nenv_humidity                  -0.050923  ...             -0.129025\nenv_air_quality               -0.271714  ...             -0.096149\nenv_wind_speed                -0.698542  ...             -0.352159\nenv_comfort_index              0.698884  ...              0.407216\nbusiness_rating                0.063334  ...              0.351890\nbusiness_reviews               0.446997  ...              0.711223\nbusiness_success_score         0.318508  ...              0.709676\nbusiness_price_level           0.330584  ...              1.000000\n\n[9 rows x 9 columns]",
+      "statistical_tests": {
+        "comfort_vs_success": {
+          "correlation": 0.2871,
+          "p_value": 0.1738,
+          "significant": "False",
+          "sample_size": 24,
+          "interpretation": "Not statistically significant"
+        },
+        "air_quality_vs_rating": {
+          "correlation": 0.0362,
+          "p_value": 0.8665,
+          "significant": "False",
+          "sample_size": 24,
+          "interpretation": "Not statistically significant"
+        }
+      },
+      "cluster_analysis": {
+        "method": "comfort_categorization",
+        "categories": {
+          "Good": {
+            "count": 24,
+            "avg_business_success": 0.7524583333333332,
+            "avg_business_rating": 4.0125
+          }
+        },
+        "total_points": 24
+      },
+      "business_insights": {
+        "summary_statistics": {
+          "total_businesses": 24,
+          "avg_success_score": 0.752,
+          "avg_comfort_index": 0.708
+        },
+        "key_findings": [
+          "High-performing businesses operate in areas with avg comfort index of 0.721"
+        ],
+        "recommendations": []
+      }
+    },
+    "visualizations": {
+      "created_count": 5,
+      "saved_files": [
+        "results/visualizations/environmental_dashboard.png",
+        "results/visualizations/business_dashboard.png",
+        "results/visualizations/correlation_heatmap.png",
+        "results/visualizations/interactive_correlation.html",
+        "results/visualizations/geospatial_map.html"
+      ],
+      "visualization_types": [
+        "environmental_dashboard",
+        "business_dashboard",
+        "correlation_heatmap",
+        "interactive_correlation",
+        "geospatial_map"
+      ]
+    }
+  },
+  "configuration": {
+    "project_name": "Urban Micro-Climate Business Intelligence",
+    "analysis_version": "1.0.0",
+    "spatial_join_distance": 200,
+    "cluster_distance": 300,
+    "minimum_businesses_per_area": 3,
+    "output_formats": [
+      "csv",
+      "json",
+      "html"
+    ],
+    "visualization_formats": [
+      "png",
+      "html"
+    ],
+    "statistical_significance_threshold": 0.05
+  },
+  "data_quality": {
+    "environmental_completeness": "100%",
+    "business_completeness": "100%",
+    "spatial_match_rate": "85.7%"
+  }
+}

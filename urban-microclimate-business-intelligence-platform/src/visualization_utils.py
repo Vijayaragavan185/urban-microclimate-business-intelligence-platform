@@ -422,3 +422,39 @@ class VisualizationEngine:
             logger.error(f"Error creating visualizations: {e}")
         
         return visualizations
+
+    
+    def save_all_visualizations(self, visualizations: Dict, output_dir: str = "results/visualizations"):
+        """Save all visualizations to files."""
+        import os
+        os.makedirs(output_dir, exist_ok=True)
+        
+        saved_files = []
+        
+        for name, viz in visualizations.items():
+            try:
+                if isinstance(viz, plt.Figure):
+                    # Save matplotlib figures
+                    filepath = f"{output_dir}/{name}.png"
+                    viz.savefig(filepath, dpi=300, bbox_inches='tight')
+                    saved_files.append(filepath)
+                    
+                elif hasattr(viz, 'write_html'):
+                    # Save plotly figures
+                    filepath = f"{output_dir}/{name}.html"
+                    viz.write_html(filepath)
+                    saved_files.append(filepath)
+                    
+                elif hasattr(viz, 'save'):
+                    # Save folium maps
+                    filepath = f"{output_dir}/{name}.html"
+                    viz.save(filepath)
+                    saved_files.append(filepath)
+                    
+            except Exception as e:
+                logger.error(f"Error saving {name}: {e}")
+        
+        logger.info(f"Saved {len(saved_files)} visualizations to {output_dir}")
+        return saved_files
+
+

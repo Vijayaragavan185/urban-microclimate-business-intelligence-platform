@@ -397,3 +397,42 @@ class UrbanMicroClimateAnalysisPlatform:
             logger.error(f"Report generation failed: {e}")
             raise
     
+    def _create_executive_summary(self) -> Dict:
+        """Create executive summary of key findings."""
+        summary = {
+            'project_overview': {
+                'project_name': self.config['project_name'],
+                'analysis_date': self.analysis_timestamp.isoformat(),
+                'version': self.config['analysis_version']
+            },
+            'data_overview': {
+                'environmental_measurements': self.results['data_collection']['environmental_points'],
+                'business_profiles': self.results['data_collection']['business_profiles'],
+                'spatial_matches': self.results['spatial_analysis']['joined_pairs']
+            },
+            'key_findings': [],
+            'business_recommendations': [],
+            'technical_achievements': []
+        }
+        
+        # Extract key findings from business analysis
+        if 'business_analysis' in self.results:
+            business_insights = self.results['business_analysis'].get('business_insights', {})
+            
+            if 'key_findings' in business_insights:
+                summary['key_findings'] = business_insights['key_findings']
+            
+            if 'recommendations' in business_insights:
+                summary['business_recommendations'] = business_insights['recommendations']
+        
+        # Technical achievements
+        summary['technical_achievements'] = [
+            f"Processed {self.results['data_collection']['environmental_points']} environmental measurements",
+            f"Analyzed {self.results['data_collection']['business_profiles']} business profiles",
+            f"Created {self.results['feature_engineering']['environmental_features_added'] + self.results['feature_engineering']['business_features_added']} engineered features",
+            f"Identified {self.results['spatial_analysis']['clusters_identified']} distinct micro-climate zones",
+            f"Generated {self.results['visualizations']['created_count']} professional visualizations"
+        ]
+        
+        return summary
+    

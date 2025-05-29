@@ -1,1 +1,1 @@
-{'summary_statistics': {'total_businesses': 24, 'avg_success_score': np.float64(0.752), 'avg_comfort_index': np.float64(0.708)}, 'key_findings': ['High-performing businesses operate in areas with avg comfort index of 0.721'], 'recommendations': []}
+{'summary_statistics': {'total_businesses': 29, 'avg_success_score': np.float64(0.772), 'avg_comfort_index': np.float64(0.637)}, 'key_findings': ['High-performing businesses operate in areas with avg comfort index of 0.629'], 'recommendations': []}

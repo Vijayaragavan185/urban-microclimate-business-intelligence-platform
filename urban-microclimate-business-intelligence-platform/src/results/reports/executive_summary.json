@@ -1,21 +1,21 @@
 {
   "project_overview": {
     "project_name": "Urban Micro-Climate Business Intelligence",
-    "analysis_date": "2025-05-28T19:37:02.475098",
+    "analysis_date": "2025-05-29T07:55:14.328667",
     "version": "1.0.0"
   },
   "data_overview": {
     "environmental_measurements": 5,
-    "business_profiles": 28,
-    "spatial_matches": 24
+    "business_profiles": 31,
+    "spatial_matches": 29
   },
   "key_findings": [
-    "High-performing businesses operate in areas with avg comfort index of 0.721"
+    "High-performing businesses operate in areas with avg comfort index of 0.629"
   ],
   "business_recommendations": [],
   "technical_achievements": [
     "Processed 5 environmental measurements",
-    "Analyzed 28 business profiles",
+    "Analyzed 31 business profiles",
     "Created 41 engineered features",
     "Identified 5 distinct micro-climate zones",
     "Generated 5 professional visualizations"

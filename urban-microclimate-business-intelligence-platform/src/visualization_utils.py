@@ -148,67 +148,49 @@ class VisualizationEngine:
         logger.info("Environmental dashboard created")
         return fig
 
-    
+        
     def create_business_performance_dashboard(self, business_data: pd.DataFrame) -> plt.Figure:
-        """Create comprehensive business performance dashboard."""
-        fig, axes = plt.subplots(2, 3, figsize=(18, 12))
+        """Create clean business performance dashboard with optimized layout."""
+        
+        # Create figure with custom subplot layout
+        fig = plt.figure(figsize=(16, 10))
         fig.suptitle('Business Performance Analysis Dashboard', fontsize=16, fontweight='bold')
         
-        # Success Score distribution
+        # Create specific subplots only where needed
+        ax1 = plt.subplot(2, 2, 1)  # Top left - Success Score Distribution
+        ax2 = plt.subplot(2, 2, 2)  # Top right - Rating by Category
+        ax3 = plt.subplot(2, 2, 3)  # Bottom left - Reviews vs Rating
+        ax4 = plt.subplot(2, 2, 4)  # Bottom right - Performance Pie Chart
+        
+        # Plot 1: Success Score Distribution
         if 'business_success_score' in business_data.columns:
-            sns.histplot(data=business_data, x='business_success_score', kde=True, ax=axes[0, 0])
-            axes[0, 0].set_title('Business Success Score Distribution')
-            axes[0, 0].axvline(business_data['business_success_score'].mean(), color='red', 
-                              linestyle='--', label=f"Mean: {business_data['business_success_score'].mean():.3f}")
-            axes[0, 0].legend()
+            sns.histplot(data=business_data, x='business_success_score', kde=True, ax=ax1)
+            ax1.set_title('Business Success Score Distribution')
+            ax1.axvline(business_data['business_success_score'].mean(), color='red', 
+                    linestyle='--', label=f"Mean: {business_data['business_success_score'].mean():.3f}")
+            ax1.legend()
         
-        # Rating distribution by category
+        # Plot 2: Rating by Category
         if 'business_category' in business_data.columns and 'business_rating' in business_data.columns:
-            sns.boxplot(data=business_data, x='business_category', y='business_rating', ax=axes[0, 1])
-            axes[0, 1].set_title('Rating Distribution by Category')
-            axes[0, 1].tick_params(axis='x', rotation=45)
+            sns.boxplot(data=business_data, x='business_category', y='business_rating', ax=ax2)
+            ax2.set_title('Rating Distribution by Category')
+            ax2.tick_params(axis='x', rotation=45)
         
-        # Review count vs Rating scatter
+        # Plot 3: Reviews vs Rating
         if 'business_reviews' in business_data.columns and 'business_rating' in business_data.columns:
-            scatter = axes[0, 2].scatter(business_data['business_reviews'], business_data['business_rating'],
-                                       c=business_data.get('business_success_score', 'blue'),
-                                       cmap='viridis', alpha=0.7)
-            axes[0, 2].set_title('Reviews vs Rating')
-            axes[0, 2].set_xlabel('Review Count')
-            axes[0, 2].set_ylabel('Rating')
-            axes[0, 2].set_xscale('log')
+            scatter = ax3.scatter(business_data['business_reviews'], business_data['business_rating'],
+                                c=business_data.get('business_success_score', 'blue'),
+                                cmap='viridis', alpha=0.7)
+            ax3.set_title('Reviews vs Rating')
+            ax3.set_xlabel('Review Count')
+            ax3.set_ylabel('Rating')
+            ax3.set_xscale('log')
             
             if 'business_success_score' in business_data.columns:
-                plt.colorbar(scatter, ax=axes[0, 2], label='Success Score')
+                plt.colorbar(scatter, ax=ax3, label='Success Score')
         
-        # Success score by price level
-        if 'business_price_level' in business_data.columns and 'business_success_score' in business_data.columns:
-            price_success = business_data.groupby('business_price_level')['business_success_score'].mean()
-            axes[1, 0].bar(price_success.index, price_success.values)
-            axes[1, 0].set_title('Success Score by Price Level')
-            axes[1, 0].set_xlabel('Price Level')
-            axes[1, 0].set_ylabel('Average Success Score')
-        
-        # Category performance comparison
-        if 'business_category' in business_data.columns and 'business_success_score' in business_data.columns:
-            category_stats = business_data.groupby('business_category').agg({
-                'business_success_score': ['mean', 'count']
-            }).round(3)
-            
-            category_means = category_stats['business_success_score']['mean'].sort_values()
-            bars = axes[1, 1].barh(range(len(category_means)), category_means.values)
-            axes[1, 1].set_yticks(range(len(category_means)))
-            axes[1, 1].set_yticklabels(category_means.index)
-            axes[1, 1].set_title('Average Success Score by Category')
-            
-            # Add count annotations
-            for i, (bar, count) in enumerate(zip(bars, category_stats['business_success_score']['count'][category_means.index])):
-                axes[1, 1].text(bar.get_width() + 0.01, bar.get_y() + bar.get_height()/2, 
-                               f'n={count}', va='center', fontsize=9)
-        
-        # Performance categories pie chart
+        # Plot 4: Performance Distribution
         if 'business_success_score' in business_data.columns:
-            # Create performance categories
             performance_categories = pd.cut(
                 business_data['business_success_score'],
                 bins=[0, 0.3, 0.6, 0.8, 1.0],
@@ -218,12 +200,12 @@ class VisualizationEngine:
             category_counts = performance_categories.value_counts()
             colors = ['red', 'orange', 'lightgreen', 'green']
             
-            axes[1, 2].pie(category_counts.values, labels=category_counts.index, 
-                          autopct='%1.1f%%', colors=colors)
-            axes[1, 2].set_title('Business Performance Distribution')
+            ax4.pie(category_counts.values, labels=category_counts.index, 
+                autopct='%1.1f%%', colors=colors)
+            ax4.set_title('Business Performance Distribution')
         
         plt.tight_layout()
-        logger.info("Business performance dashboard created")
+        logger.info("Optimized business performance dashboard created")
         return fig
     
     def create_interactive_correlation_plot(self, merged_data: pd.DataFrame) -> go.Figure:

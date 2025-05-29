@@ -8,8 +8,8 @@
   "results_summary": {
     "data_collection": {
       "environmental_points": 5,
-      "business_profiles": 28,
-      "collection_timestamp": "2025-05-28T19:37:02.475098",
+      "business_profiles": 31,
+      "collection_timestamp": "2025-05-29T07:55:14.328667",
       "geographic_coverage": {
         "lat_range": [
           40.7128,
@@ -28,26 +28,26 @@
       "total_business_features": 39
     },
     "spatial_analysis": {
-      "joined_pairs": 24,
+      "joined_pairs": 29,
       "spatial_join_distance": 200,
       "clusters_identified": 5,
       "cluster_distance": 300
     },
     "business_analysis": {
-      "correlation_matrix": "                        env_temperature  ...  business_price_level\nenv_temperature                1.000000  ...              0.330584\nenv_humidity                  -0.050923  ...             -0.129025\nenv_air_quality               -0.271714  ...             -0.096149\nenv_wind_speed                -0.698542  ...             -0.352159\nenv_comfort_index              0.698884  ...              0.407216\nbusiness_rating                0.063334  ...              0.351890\nbusiness_reviews               0.446997  ...              0.711223\nbusiness_success_score         0.318508  ...              0.709676\nbusiness_price_level           0.330584  ...              1.000000\n\n[9 rows x 9 columns]",
+      "correlation_matrix": "                        env_temperature  env_humidity  ...  business_success_score  business_price_level\nenv_temperature                1.000000      0.304002  ...               -0.122899              0.028848\nenv_humidity                   0.304002      1.000000  ...                0.165029             -0.203611\nenv_air_quality                0.486824     -0.481606  ...               -0.180525              0.104089\nenv_wind_speed                -0.264617      0.663170  ...                0.339064             -0.114053\nenv_comfort_index             -0.624836     -0.759660  ...               -0.168497              0.062911\nbusiness_rating               -0.153772      0.124847  ...                0.895330              0.179087\nbusiness_reviews              -0.093930      0.118018  ...                0.666824              0.721332\nbusiness_success_score        -0.122899      0.165029  ...                1.000000              0.495493\nbusiness_price_level           0.028848     -0.203611  ...                0.495493              1.000000\n\n[9 rows x 9 columns]",
       "statistical_tests": {
         "comfort_vs_success": {
-          "correlation": 0.2871,
-          "p_value": 0.1738,
+          "correlation": -0.1685,
+          "p_value": 0.3823,
           "significant": "False",
-          "sample_size": 24,
+          "sample_size": 29,
           "interpretation": "Not statistically significant"
         },
         "air_quality_vs_rating": {
-          "correlation": 0.0362,
-          "p_value": 0.8665,
+          "correlation": -0.1501,
+          "p_value": 0.437,
           "significant": "False",
-          "sample_size": 24,
+          "sample_size": 29,
           "interpretation": "Not statistically significant"
         }
       },
@@ -55,21 +55,31 @@
         "method": "comfort_categorization",
         "categories": {
           "Good": {
-            "count": 24,
-            "avg_business_success": 0.7524583333333332,
-            "avg_business_rating": 4.0125
+            "count": 7,
+            "avg_business_success": 0.7801428571428571,
+            "avg_business_rating": 4.1
+          },
+          "Excellent": {
+            "count": 4,
+            "avg_business_success": 0.74325,
+            "avg_business_rating": 3.9
+          },
+          "Fair": {
+            "count": 18,
+            "avg_business_success": 0.774888888888889,
+            "avg_business_rating": 4.033333333333334
           }
         },
-        "total_points": 24
+        "total_points": 29
       },
       "business_insights": {
         "summary_statistics": {
-          "total_businesses": 24,
-          "avg_success_score": 0.752,
-          "avg_comfort_index": 0.708
+          "total_businesses": 29,
+          "avg_success_score": 0.772,
+          "avg_comfort_index": 0.637
         },
         "key_findings": [
-          "High-performing businesses operate in areas with avg comfort index of 0.721"
+          "High-performing businesses operate in areas with avg comfort index of 0.629"
         ],
         "recommendations": []
       }
@@ -112,6 +122,6 @@
   "data_quality": {
     "environmental_completeness": "100%",
     "business_completeness": "100%",
-    "spatial_match_rate": "85.7%"
+    "spatial_match_rate": "93.5%"
   }
 }

@@ -1,22 +1,22 @@
 
 # Urban Micro-Climate Business Intelligence
 
-**Analysis Date:** 2025-05-28T19:37:02.475098  
+**Analysis Date:** 2025-05-29T07:55:14.328667  
 **Version:** 1.0.0
 
 ## Executive Summary
 
 ### Data Overview
 - **Environmental Measurements:** 5
-- **Business Profiles:** 28
-- **Spatial Matches:** 24
+- **Business Profiles:** 31
+- **Spatial Matches:** 29
 
 ### Key Findings
-- High-performing businesses operate in areas with avg comfort index of 0.721\n
+- High-performing businesses operate in areas with avg comfort index of 0.629\n
 ### Business Recommendations
 
 ### Technical Achievements
-- Processed 5 environmental measurements\n- Analyzed 28 business profiles\n- Created 41 engineered features\n- Identified 5 distinct micro-climate zones\n- Generated 5 professional visualizations\n
+- Processed 5 environmental measurements\n- Analyzed 31 business profiles\n- Created 41 engineered features\n- Identified 5 distinct micro-climate zones\n- Generated 5 professional visualizations\n
 ## Analysis Results
 
 ### Spatial Analysis

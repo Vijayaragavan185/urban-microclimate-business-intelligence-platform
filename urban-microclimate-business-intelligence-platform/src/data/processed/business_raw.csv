@@ -1,29 +1,32 @@
 business_id,name,category,latitude,longitude,measurement_area,rating,review_count,price_level,is_open,success_score,env_sensitivity,env_bonus
-BIZ_00001,Pharmacy #1,pharmacy,40.71185798890307,-74.00701729844346,Times Square Business District,4.0,20,1,False,0.674,0.3,-0.06
-BIZ_00002,Retail #2,retail,40.71270412113271,-74.00492721597752,Times Square Business District,3.4,33,2,True,0.626,0.6,-0.12
-BIZ_00003,Pharmacy #3,pharmacy,40.712417943208514,-74.00534872482926,Times Square Business District,4.3,24,1,False,0.735,0.3,-0.06
-BIZ_00004,Salon #4,salon,40.713651567764494,-74.00569877624594,Times Square Business District,4.1,33,2,True,0.731,0.5,-0.1
-BIZ_00005,Pharmacy #5,pharmacy,40.71324266013023,-74.00682855027318,Times Square Business District,4.0,20,1,True,0.677,0.3,-0.06
-BIZ_00006,Restaurant #6,restaurant,40.757964094914605,-73.98630672361914,Central Park Commercial Zone,3.6,79,2,True,0.725,0.8,0.24
-BIZ_00007,Fitness #7,fitness,40.75862548893201,-73.98440394633164,Central Park Commercial Zone,4.3,148,3,True,0.874,0.7,0.21
-BIZ_00008,Retail #8,retail,40.75922871469649,-73.98422946809403,Central Park Commercial Zone,3.7,78,2,True,0.732,0.6,0.18
-BIZ_00009,Restaurant #9,restaurant,40.75761738156779,-73.984638810525,Central Park Commercial Zone,3.8,152,2,True,0.8,0.8,0.24
-BIZ_00010,Restaurant #10,restaurant,40.75867021138633,-73.98432042441624,Central Park Commercial Zone,4.3,104,2,True,0.842,0.8,0.24
-BIZ_00011,Restaurant #11,restaurant,40.75899947262214,-73.98410563588138,Central Park Commercial Zone,4.1,170,2,True,0.848,0.8,0.24
-BIZ_00012,Bank #12,bank,40.74891291879389,-73.99283117802429,Broadway Theater District,3.5,18,1,True,0.592,0.2,0.06
-BIZ_00013,Cafe #13,cafe,40.751553459920835,-73.99403561962833,Broadway Theater District,4.2,105,2,True,0.824,0.9,0.27
-BIZ_00014,Retail #14,retail,40.7525761099693,-73.99485869017349,Broadway Theater District,3.4,71,2,True,0.681,0.6,0.18
-BIZ_00015,Salon #15,salon,40.75114410969829,-73.99242845836311,Broadway Theater District,5.0,76,2,False,0.928,0.5,0.15
-BIZ_00016,Restaurant #16,restaurant,40.74999624654877,-73.99348649336658,Broadway Theater District,4.1,84,2,True,0.795,0.8,0.24
-BIZ_00017,Pharmacy #17,pharmacy,40.75105123843098,-73.99256114174088,Broadway Theater District,4.0,26,1,True,0.704,0.3,0.09
-BIZ_00018,Salon #18,salon,40.7511212550582,-73.99414199993025,Broadway Theater District,3.7,68,2,True,0.73,0.5,0.15
-BIZ_00019,Salon #19,salon,40.72878374854038,-74.07750214771245,Financial District,4.7,51,2,True,0.858,0.5,0.15
-BIZ_00020,Retail #20,retail,40.72787931987577,-74.07860067324275,Financial District,4.1,84,2,True,0.798,0.6,0.18
-BIZ_00021,Restaurant #21,restaurant,40.72673487732713,-74.0758356347013,Financial District,4.0,161,2,False,0.838,0.8,0.24
-BIZ_00022,Bank #22,bank,40.729201191082325,-74.07847576963471,Financial District,3.1,17,1,True,0.53,0.2,0.06
-BIZ_00023,Cafe #23,cafe,40.72787972115773,-74.07641435336832,Financial District,4.8,69,2,True,0.892,0.9,0.27
-BIZ_00024,Restaurant #24,restaurant,40.78532521405965,-73.97186030559843,Upper East Side Commercial,3.9,86,2,True,0.765,0.8,0.24
-BIZ_00025,Restaurant #25,restaurant,40.7823111079626,-73.96927229969056,Upper East Side Commercial,3.6,155,2,True,0.769,0.8,0.24
-BIZ_00026,Restaurant #26,restaurant,40.781293716861896,-73.97280052262336,Upper East Side Commercial,3.6,128,2,True,0.761,0.8,0.24
-BIZ_00027,Salon #27,salon,40.783154946135326,-73.97096132781274,Upper East Side Commercial,4.4,38,2,True,0.785,0.5,0.15
-BIZ_00028,Bank #28,bank,40.783003272179506,-73.97101192608224,Upper East Side Commercial,3.5,17,1,True,0.59,0.2,0.06
+BIZ_00001,Salon #1,salon,40.71416004118841,-74.00582725757279,Times Square Business District,4.1,51,2,True,0.76,0.5,0.05
+BIZ_00002,Cafe #2,cafe,40.71263770418026,-74.0063073060509,Times Square Business District,4.7,81,2,True,0.885,0.9,0.09
+BIZ_00003,Retail #3,retail,40.71395204938678,-74.0054764744445,Times Square Business District,3.6,42,2,True,0.669,0.6,0.06
+BIZ_00004,Fitness #4,fitness,40.713293355155216,-74.00769086423405,Times Square Business District,4.2,148,3,True,0.857,0.7,0.07
+BIZ_00005,Restaurant #5,restaurant,40.712357017963626,-74.00732709945196,Times Square Business District,4.3,78,2,True,0.819,0.8,0.08
+BIZ_00006,Salon #6,salon,40.71307249436306,-74.00602392287264,Times Square Business District,3.9,56,2,True,0.739,0.5,0.05
+BIZ_00007,Cafe #7,cafe,40.71300336097396,-74.00571662792679,Times Square Business District,3.9,51,2,True,0.732,0.9,0.09
+BIZ_00008,Cafe #8,cafe,40.759682371060535,-73.985532140758,Central Park Commercial Zone,4.4,98,2,True,0.863,0.9,0.27
+BIZ_00009,Retail #9,retail,40.757828973633465,-73.98322658715622,Central Park Commercial Zone,4.1,77,2,True,0.79,0.6,0.18
+BIZ_00010,Bank #10,bank,40.758161872251996,-73.98487293841706,Central Park Commercial Zone,3.0,15,1,True,0.506,0.2,0.06
+BIZ_00011,Cafe #11,cafe,40.759885265836864,-73.98625426376185,Central Park Commercial Zone,4.1,107,2,True,0.814,0.9,0.27
+BIZ_00012,Restaurant #12,restaurant,40.75136344143329,-73.99342586563621,Broadway Theater District,3.9,72,2,True,0.756,0.8,-0.16
+BIZ_00013,Pharmacy #13,pharmacy,40.750822618411185,-73.99334005326308,Broadway Theater District,3.8,21,1,True,0.65,0.3,-0.06
+BIZ_00014,Restaurant #14,restaurant,40.75022456043865,-73.99336467341288,Broadway Theater District,3.5,90,2,True,0.714,0.8,-0.16
+BIZ_00015,Cafe #15,cafe,40.750489862702295,-73.99161345861019,Broadway Theater District,3.8,66,2,True,0.734,0.9,-0.18
+BIZ_00016,Restaurant #16,restaurant,40.749903381717075,-73.99246255613963,Broadway Theater District,3.9,107,2,True,0.79,0.8,-0.16
+BIZ_00017,Retail #17,retail,40.7487703108585,-73.99353251047812,Broadway Theater District,3.7,56,2,True,0.715,0.6,-0.12
+BIZ_00018,Pharmacy #18,pharmacy,40.75072538923028,-73.99214705610586,Broadway Theater District,4.0,28,1,True,0.71,0.3,-0.06
+BIZ_00019,Restaurant #19,restaurant,40.73091915404097,-74.07795551589827,Financial District,4.0,129,2,False,0.811,0.8,0.24
+BIZ_00020,Pharmacy #20,pharmacy,40.728329343424484,-74.07887726940771,Financial District,4.7,47,1,True,0.844,0.3,0.09
+BIZ_00021,Cafe #21,cafe,40.72684716677634,-74.0778845301825,Financial District,4.5,116,2,True,0.888,0.9,0.27
+BIZ_00022,Cafe #22,cafe,40.728341738875706,-74.07701598944288,Financial District,4.4,62,2,True,0.819,0.9,0.27
+BIZ_00023,Restaurant #23,restaurant,40.72880136871059,-74.07840422429031,Financial District,4.4,88,2,True,0.847,0.8,0.24
+BIZ_00024,Restaurant #24,restaurant,40.728988654298405,-74.07766912414965,Financial District,3.6,113,2,True,0.755,0.8,0.24
+BIZ_00025,Cafe #25,cafe,40.7834826438314,-73.9713954337346,Upper East Side Commercial,4.0,72,2,True,0.767,0.9,0.09
+BIZ_00026,Restaurant #26,restaurant,40.782804224436454,-73.97078904523669,Upper East Side Commercial,3.9,131,2,True,0.805,0.8,0.08
+BIZ_00027,Cafe #27,cafe,40.78436764647563,-73.97172199989919,Upper East Side Commercial,4.6,76,2,True,0.861,0.9,0.09
+BIZ_00028,Restaurant #28,restaurant,40.78452368616207,-73.9738608446213,Upper East Side Commercial,4.0,107,2,True,0.811,0.8,0.08
+BIZ_00029,Retail #29,retail,40.78466349103823,-73.97083105023685,Upper East Side Commercial,3.7,56,2,True,0.707,0.6,0.06
+BIZ_00030,Restaurant #30,restaurant,40.7841556766858,-73.97197398551134,Upper East Side Commercial,3.9,85,2,True,0.775,0.8,0.08
+BIZ_00031,Salon #31,salon,40.78242421654328,-73.96921601690826,Upper East Side Commercial,4.3,71,2,False,0.811,0.5,0.05

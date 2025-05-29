@@ -1,6 +1,6 @@
 timestamp,latitude,longitude,street_name,temperature_celsius,humidity_percent,wind_speed_ms,air_quality_index,data_source,comfort_index
-2025-05-28 19:37:02.481675,40.7128,-74.006,Times Square Business District,11.8,54.2,1.4,73,multi_api_simulation,0.628
-2025-05-28 19:37:02.582515,40.7589,-73.9851,Central Park Commercial Zone,22.7,50.3,0.8,63,multi_api_simulation,0.774
-2025-05-28 19:37:02.684416,40.7505,-73.9934,Broadway Theater District,23.0,66.8,0.9,52,multi_api_simulation,0.726
-2025-05-28 19:37:02.785432,40.7282,-74.0776,Financial District,23.3,34.7,0.7,85,multi_api_simulation,0.653
-2025-05-28 19:37:02.886984,40.7831,-73.9712,Upper East Side Commercial,23.2,56.7,1.4,68,multi_api_simulation,0.745
+2025-05-29 07:55:14.360572,40.7128,-74.006,Times Square Business District,24.3,43.3,0.9,76,multi_api_simulation,0.688
+2025-05-29 07:55:14.461589,40.7589,-73.9851,Central Park Commercial Zone,20.4,53.0,0.9,54,multi_api_simulation,0.838
+2025-05-29 07:55:14.562669,40.7505,-73.9934,Broadway Theater District,27.1,69.6,1.2,75,multi_api_simulation,0.582
+2025-05-29 07:55:14.665256,40.7282,-74.0776,Financial District,23.0,86.2,6.7,59,multi_api_simulation,0.526
+2025-05-29 07:55:14.767940,40.7831,-73.9712,Upper East Side Commercial,26.6,78.8,1.5,58,multi_api_simulation,0.6
